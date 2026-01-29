@@ -3,7 +3,7 @@
  * Plugin Name: WP Deweloper Gov Reporter
  * Description: Automates daily reporting of apartment prices to dane.gov.pl and displays price history, complying with July 2025 regulations. Supports Elementor.
  * Version: 1.0.0
- * Author: Jules
+ * Author: Jakub Wcisło
  * Text Domain: wp-deweloper-gov-reporter
  */
 
