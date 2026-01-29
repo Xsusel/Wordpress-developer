@@ -7,7 +7,7 @@ Wtyczka **WP Deweloper Gov Reporter** ma na celu automatyzację obowiązków wyn
 1.  **Zarządzanie Ofertą (Inwestycje i Lokale):** Dedykowane typy wpisów (Custom Post Types) do zarządzania bazą nieruchomości.
 2.  **Historia Cen:** Automatyczne rejestrowanie każdej zmiany ceny lokalu wraz z datą zmiany.
 3.  **Integracja z API dane.gov.pl:** Automatyczne generowanie i wysyłanie raportów dziennych (format JSON/XML).
-4.  **Prezentacja na WWW:** Shortcod’y i bloki Gutenberga do wyświetlania historii cen oraz szczegółów oferty na stronie frontowej.
+4.  **Prezentacja na WWW:** Shortcod’y, bloki Gutenberga oraz **Widgety Elementora** do wyświetlania historii cen oraz szczegółów oferty na stronie frontowej.
 5.  **Logi i Powiadomienia:** Rejestr wysyłek do API oraz alerty e-mail w przypadku błędów raportowania.
 
 ## 3. Architektura Techniczna
@@ -81,6 +81,7 @@ Zadanie `wp_dew_gov_daily_report`:
 ### Faza 4: Frontend (Prezentacja)
 *   [ ] Shortcode `[price_history]` wyświetlający wykres lub tabelę zmian cen.
 *   [ ] Shortcode `[unit_details]` wyświetlający wymagane prawem informacje.
+*   [ ] **Integracja z Elementorem:** Rejestracja widgetów "Price History" i "Unit Details" w Elementorze.
 
 ### Faza 5: Testy i Weryfikacja
 *   [ ] Walidacja danych przed wysyłką (np. ujemne ceny, brak metrażu).
