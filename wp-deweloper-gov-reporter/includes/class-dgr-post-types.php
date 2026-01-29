@@ -39,6 +39,7 @@ class DGR_Post_Types {
 			'publicly_queryable'    => true,
 			'capability_type'       => 'post',
 			'show_in_rest'          => true,
+			'rewrite'               => array( 'slug' => 'inwestycja' ),
 		);
 		register_post_type( 'dgr_investment', $args_investment );
 
@@ -74,6 +75,7 @@ class DGR_Post_Types {
 			'publicly_queryable'    => true,
 			'capability_type'       => 'post',
 			'show_in_rest'          => true,
+			'rewrite'               => array( 'slug' => 'lokal' ),
 		);
 		register_post_type( 'dgr_unit', $args_unit );
 	}

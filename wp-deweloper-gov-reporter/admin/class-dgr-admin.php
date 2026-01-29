@@ -13,6 +13,14 @@ class DGR_Admin {
 	public function init() {
 		add_action( 'admin_menu', array( $this, 'add_plugin_admin_menu' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_init', array( $this, 'maybe_flush_rewrite_rules' ) );
+	}
+
+	public function maybe_flush_rewrite_rules() {
+		if ( ! get_option( 'dgr_rewrite_rules_flushed_v1' ) ) {
+			flush_rewrite_rules();
+			update_option( 'dgr_rewrite_rules_flushed_v1', true );
+		}
 	}
 
 	public function add_plugin_admin_menu() {
