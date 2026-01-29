@@ -113,8 +113,11 @@ class WP_Deweloper_Gov_Reporter {
 		$plugin_public = new DGR_Public( $this->get_plugin_name(), $this->get_version() );
 		$plugin_public->init();
 
-		$elementor_manager = new DGR_Elementor_Manager();
-		$elementor_manager->init();
+		// Initialize Elementor integration on plugins_loaded to ensure Elementor is active
+		add_action( 'plugins_loaded', function() {
+			$elementor_manager = new DGR_Elementor_Manager();
+			$elementor_manager->init();
+		});
 	}
 
 	public function run_daily_report() {

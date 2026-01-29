@@ -64,24 +64,24 @@ Zadanie `wp_dew_gov_daily_report`:
 ## 4. Plan Wdrożenia (Roadmapa)
 
 ### Faza 1: Struktura i Zarządzanie Danymi
-*   [ ] Inicjalizacja wtyczki (boilerplate).
-*   [ ] Rejestracja CPT `investment` i `unit`.
-*   [ ] Dodanie pól niestandardowych (Meta Boxes) dla cen, metrażu i statusów.
-*   [ ] Implementacja mechanizmu "Hook on Save": przy zapisie lokalu sprawdź, czy cena się zmieniła -> jeśli tak, dopisz do historii cen.
+*   [x] Inicjalizacja wtyczki (boilerplate).
+*   [x] Rejestracja CPT `investment` i `unit`.
+*   [x] Dodanie pól niestandardowych (Meta Boxes) dla cen, metrażu i statusów.
+*   [x] Implementacja mechanizmu "Hook on Save": przy zapisie lokalu sprawdź, czy cena się zmieniła -> jeśli tak, dopisz do historii cen.
 
 ### Faza 2: Integracja API
-*   [ ] Stworzenie strony ustawień (API Key, Endpoint URL, dane dewelopera).
-*   [ ] Implementacja klasy `ReportGenerator` tworzącej JSON.
-*   [ ] Implementacja klasy `ApiConnector` do komunikacji z `dane.gov.pl`.
+*   [x] Stworzenie strony ustawień (API Key, Endpoint URL, dane dewelopera).
+*   [x] Implementacja klasy `ReportGenerator` tworzącej JSON.
+*   [x] Implementacja klasy `ApiConnector` do komunikacji z `dane.gov.pl`.
 
 ### Faza 3: Automatyzacja
-*   [ ] Konfiguracja WP-Cron (Harmonogram zadań).
-*   [ ] Obsługa błędów (Retries) i logowanie wyników wysyłki.
+*   [x] Konfiguracja WP-Cron (Harmonogram zadań).
+*   [x] Obsługa błędów (Retries) i logowanie wyników wysyłki.
 
 ### Faza 4: Frontend (Prezentacja)
-*   [ ] Shortcode `[price_history]` wyświetlający wykres lub tabelę zmian cen.
-*   [ ] Shortcode `[unit_details]` wyświetlający wymagane prawem informacje.
-*   [ ] **Integracja z Elementorem:** Rejestracja widgetów "Price History" i "Unit Details" w Elementorze.
+*   [x] Shortcode `[price_history]` wyświetlający wykres lub tabelę zmian cen.
+*   [x] Shortcode `[unit_details]` wyświetlający wymagane prawem informacje.
+*   [x] **Integracja z Elementorem:** Rejestracja widgetów "Price History" i "Unit Details" w Elementorze.
 
 ### Faza 5: Testy i Weryfikacja
 *   [ ] Walidacja danych przed wysyłką (np. ujemne ceny, brak metrażu).
