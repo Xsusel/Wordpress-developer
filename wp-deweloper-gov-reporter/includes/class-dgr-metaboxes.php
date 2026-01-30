@@ -106,8 +106,12 @@ class DGR_Metaboxes {
 			<label for="dgr_unit_status"><?php _e( 'Status', 'wp-deweloper-gov-reporter' ); ?></label>
 			<select id="dgr_unit_status" name="dgr_unit_status" class="widefat">
 				<option value="available" <?php selected( $status, 'available' ); ?>><?php _e( 'Dostępny', 'wp-deweloper-gov-reporter' ); ?></option>
+				<option value="offer" <?php selected( $status, 'offer' ); ?>><?php _e( 'Oferta specjalna', 'wp-deweloper-gov-reporter' ); ?></option>
 				<option value="reserved" <?php selected( $status, 'reserved' ); ?>><?php _e( 'Zarezerwowany', 'wp-deweloper-gov-reporter' ); ?></option>
+				<option value="reservation_agreement" <?php selected( $status, 'reservation_agreement' ); ?>><?php _e( 'Umowa rezerwacyjna', 'wp-deweloper-gov-reporter' ); ?></option>
+				<option value="developer_agreement" <?php selected( $status, 'developer_agreement' ); ?>><?php _e( 'Umowa deweloperska', 'wp-deweloper-gov-reporter' ); ?></option>
 				<option value="sold" <?php selected( $status, 'sold' ); ?>><?php _e( 'Sprzedany', 'wp-deweloper-gov-reporter' ); ?></option>
+				<option value="transferred" <?php selected( $status, 'transferred' ); ?>><?php _e( 'Przekazany', 'wp-deweloper-gov-reporter' ); ?></option>
 			</select>
 		</p>
 		<p>

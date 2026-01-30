@@ -13,12 +13,15 @@ class DGR_Public {
 	public function init() {
 		add_shortcode( 'dgr_price_history', array( $this, 'render_price_history' ) );
 		add_shortcode( 'dgr_unit_details', array( $this, 'render_unit_details' ) );
+		add_shortcode( 'dgr_unit_list', array( $this, 'render_unit_list' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 	}
 
 	public function enqueue_scripts() {
 		// Enqueue Chart.js from CDN
 		wp_register_script( 'chartjs', 'https://cdn.jsdelivr.net/npm/chart.js', array(), '4.4.0', true );
+
+		// Enqueue custom script for filters if needed (inline usually sufficient for simple filtering)
 	}
 
 	public function render_price_history( $atts ) {
@@ -141,6 +144,134 @@ class DGR_Public {
 		}
 
 		echo '</div>';
+		return ob_get_clean();
+	}
+
+	public function render_unit_list( $atts ) {
+		$atts = shortcode_atts( array(
+			'investment_id' => '', // Optional: filter by investment ID initially
+		), $atts, 'dgr_unit_list' );
+
+		// Filter logic handling (GET params)
+		$filter_rooms_min = isset( $_GET['rooms_min'] ) ? intval( $_GET['rooms_min'] ) : 0;
+		$filter_rooms_max = isset( $_GET['rooms_max'] ) ? intval( $_GET['rooms_max'] ) : 10;
+		$filter_area_min  = isset( $_GET['area_min'] ) ? intval( $_GET['area_min'] ) : 0;
+		$filter_area_max  = isset( $_GET['area_max'] ) ? intval( $_GET['area_max'] ) : 200;
+		$filter_status    = isset( $_GET['status'] ) ? sanitize_text_field( $_GET['status'] ) : '';
+
+		// Meta query construction
+		$meta_query = array( 'relation' => 'AND' );
+
+		if ( ! empty( $atts['investment_id'] ) ) {
+			$meta_query[] = array(
+				'key'   => '_dgr_unit_parent_investment',
+				'value' => intval( $atts['investment_id'] ),
+			);
+		}
+
+		if ( $filter_rooms_min > 0 || $filter_rooms_max < 10 ) {
+			$meta_query[] = array(
+				'key'     => '_dgr_unit_rooms',
+				'value'   => array( $filter_rooms_min, $filter_rooms_max ),
+				'type'    => 'NUMERIC',
+				'compare' => 'BETWEEN',
+			);
+		}
+
+		if ( $filter_area_min > 0 || $filter_area_max < 200 ) {
+			$meta_query[] = array(
+				'key'     => '_dgr_unit_area',
+				'value'   => array( $filter_area_min, $filter_area_max ),
+				'type'    => 'DECIMAL',
+				'compare' => 'BETWEEN',
+			);
+		}
+
+		if ( ! empty( $filter_status ) ) {
+			$meta_query[] = array(
+				'key'   => '_dgr_unit_status',
+				'value' => $filter_status,
+			);
+		}
+
+		$args = array(
+			'post_type'      => 'dgr_unit',
+			'posts_per_page' => 20,
+			'meta_query'     => $meta_query,
+		);
+
+		$query = new WP_Query( $args );
+
+		ob_start();
+		?>
+		<div class="dgr-unit-list-wrapper">
+			<form method="get" class="dgr-filter-form" style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #ddd;">
+				<div class="dgr-filter-row" style="display: flex; gap: 15px; flex-wrap: wrap;">
+					<div>
+						<label><?php _e( 'Pokoje (min-max)', 'wp-deweloper-gov-reporter' ); ?></label><br>
+						<input type="number" name="rooms_min" value="<?php echo esc_attr( $filter_rooms_min ); ?>" style="width: 60px;"> -
+						<input type="number" name="rooms_max" value="<?php echo esc_attr( $filter_rooms_max ); ?>" style="width: 60px;">
+					</div>
+					<div>
+						<label><?php _e( 'Powierzchnia m² (min-max)', 'wp-deweloper-gov-reporter' ); ?></label><br>
+						<input type="number" name="area_min" value="<?php echo esc_attr( $filter_area_min ); ?>" style="width: 60px;"> -
+						<input type="number" name="area_max" value="<?php echo esc_attr( $filter_area_max ); ?>" style="width: 60px;">
+					</div>
+					<div>
+						<label><?php _e( 'Status', 'wp-deweloper-gov-reporter' ); ?></label><br>
+						<select name="status">
+							<option value=""><?php _e( 'Wszystkie', 'wp-deweloper-gov-reporter' ); ?></option>
+							<option value="available" <?php selected( $filter_status, 'available' ); ?>><?php _e( 'Dostępne', 'wp-deweloper-gov-reporter' ); ?></option>
+							<option value="offer" <?php selected( $filter_status, 'offer' ); ?>><?php _e( 'Oferta specjalna', 'wp-deweloper-gov-reporter' ); ?></option>
+							<option value="sold" <?php selected( $filter_status, 'sold' ); ?>><?php _e( 'Sprzedane', 'wp-deweloper-gov-reporter' ); ?></option>
+						</select>
+					</div>
+					<div style="align-self: flex-end;">
+						<button type="submit" class="button"><?php _e( 'Filtruj', 'wp-deweloper-gov-reporter' ); ?></button>
+					</div>
+				</div>
+			</form>
+
+			<div class="dgr-results">
+				<?php if ( $query->have_posts() ) : ?>
+					<table class="dgr-table" style="width: 100%; border-collapse: collapse;">
+						<thead>
+							<tr style="background: #eee;">
+								<th style="padding: 10px; text-align: left;"><?php _e( 'Nr Lokalu', 'wp-deweloper-gov-reporter' ); ?></th>
+								<th style="padding: 10px; text-align: left;"><?php _e( 'Inwestycja', 'wp-deweloper-gov-reporter' ); ?></th>
+								<th style="padding: 10px; text-align: center;"><?php _e( 'Pokoje', 'wp-deweloper-gov-reporter' ); ?></th>
+								<th style="padding: 10px; text-align: right;"><?php _e( 'Powierzchnia', 'wp-deweloper-gov-reporter' ); ?></th>
+								<th style="padding: 10px; text-align: center;"><?php _e( 'Status', 'wp-deweloper-gov-reporter' ); ?></th>
+								<th style="padding: 10px; text-align: center;"><?php _e( 'Szczegóły', 'wp-deweloper-gov-reporter' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php while ( $query->have_posts() ) : $query->the_post();
+								$meta = get_post_meta( get_the_ID() );
+								$unit_id = isset( $meta['_dgr_unit_id'][0] ) ? $meta['_dgr_unit_id'][0] : '-';
+								$area = isset( $meta['_dgr_unit_area'][0] ) ? $meta['_dgr_unit_area'][0] : '-';
+								$rooms = isset( $meta['_dgr_unit_rooms'][0] ) ? $meta['_dgr_unit_rooms'][0] : '-';
+								$status = isset( $meta['_dgr_unit_status'][0] ) ? $meta['_dgr_unit_status'][0] : '-';
+								$parent_id = isset( $meta['_dgr_unit_parent_investment'][0] ) ? $meta['_dgr_unit_parent_investment'][0] : 0;
+								$inv_name = $parent_id ? get_the_title( $parent_id ) : '-';
+							?>
+								<tr style="border-bottom: 1px solid #ddd;">
+									<td style="padding: 10px;"><?php echo esc_html( $unit_id ); ?></td>
+									<td style="padding: 10px;"><?php echo esc_html( $inv_name ); ?></td>
+									<td style="padding: 10px; text-align: center;"><?php echo esc_html( $rooms ); ?></td>
+									<td style="padding: 10px; text-align: right;"><?php echo esc_html( $area ); ?> m²</td>
+									<td style="padding: 10px; text-align: center;"><?php echo esc_html( ucfirst( $status ) ); ?></td>
+									<td style="padding: 10px; text-align: center;"><a href="<?php the_permalink(); ?>"><?php _e( 'Zobacz', 'wp-deweloper-gov-reporter' ); ?></a></td>
+								</tr>
+							<?php endwhile; ?>
+						</tbody>
+					</table>
+				<?php else : ?>
+					<p><?php _e( 'Nie znaleziono lokali spełniających kryteria.', 'wp-deweloper-gov-reporter' ); ?></p>
+				<?php endif; wp_reset_postdata(); ?>
+			</div>
+		</div>
+		<?php
 		return ob_get_clean();
 	}
 

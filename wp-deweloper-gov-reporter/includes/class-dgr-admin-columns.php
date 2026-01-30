@@ -15,7 +15,53 @@ class DGR_Admin_Columns {
 
 		// Quick Edit
 		add_action( 'quick_edit_custom_box', array( $this, 'render_quick_edit' ), 10, 2 );
-		// Saving logic for quick edit is handled by DGR_Metaboxes::save_meta_boxes if fields are present
+		add_action( 'admin_footer', array( $this, 'quick_edit_javascript' ) );
+
+		// Bulk Actions
+		add_filter( 'bulk_actions-edit-dgr_unit', array( $this, 'register_bulk_actions' ) );
+		add_filter( 'handle_bulk_actions-edit-dgr_unit', array( $this, 'handle_bulk_actions' ), 10, 3 );
+		add_action( 'admin_notices', array( $this, 'bulk_action_admin_notice' ) );
+	}
+
+	public function register_bulk_actions( $bulk_actions ) {
+		$bulk_actions['dgr_mark_sold'] = __( 'Zmień status na Sprzedane', 'wp-deweloper-gov-reporter' );
+		$bulk_actions['dgr_mark_reserved'] = __( 'Zmień status na Zarezerwowane', 'wp-deweloper-gov-reporter' );
+		$bulk_actions['dgr_mark_available'] = __( 'Zmień status na Dostępne', 'wp-deweloper-gov-reporter' );
+		return $bulk_actions;
+	}
+
+	public function handle_bulk_actions( $redirect_to, $doaction, $post_ids ) {
+		if ( ! in_array( $doaction, array( 'dgr_mark_sold', 'dgr_mark_reserved', 'dgr_mark_available' ) ) ) {
+			return $redirect_to;
+		}
+
+		$status_map = array(
+			'dgr_mark_sold'      => 'sold',
+			'dgr_mark_reserved'  => 'reserved',
+			'dgr_mark_available' => 'available',
+		);
+
+		$new_status = $status_map[ $doaction ];
+		$changed = 0;
+
+		foreach ( $post_ids as $post_id ) {
+			update_post_meta( $post_id, '_dgr_unit_status', $new_status );
+			$changed++;
+		}
+
+		$redirect_to = add_query_arg( 'dgr_bulk_action_done', $changed, $redirect_to );
+		$redirect_to = add_query_arg( 'dgr_action_status', $new_status, $redirect_to );
+		return $redirect_to;
+	}
+
+	public function bulk_action_admin_notice() {
+		if ( ! empty( $_REQUEST['dgr_bulk_action_done'] ) ) {
+			$count = intval( $_REQUEST['dgr_bulk_action_done'] );
+			$status = sanitize_text_field( $_REQUEST['dgr_action_status'] );
+			printf( '<div id="message" class="updated notice is-dismissible"><p>' .
+				_n( '%s lokal zaktualizowany na status: %s.', '%s lokali zaktualizowanych na status: %s.', $count, 'wp-deweloper-gov-reporter' ) .
+				'</p></div>', $count, $status );
+		}
 	}
 
 	public function add_unit_columns( $columns ) {
@@ -44,6 +90,7 @@ class DGR_Admin_Columns {
 			case 'dgr_status':
 				$status = get_post_meta( $post_id, '_dgr_unit_status', true );
 				echo esc_html( ucfirst( $status ) );
+				echo '<input type="hidden" class="dgr_status_hidden_' . esc_attr( $post_id ) . '" value="' . esc_attr( $status ) . '">';
 				break;
 			case 'dgr_area':
 				echo esc_html( get_post_meta( $post_id, '_dgr_unit_area', true ) );
@@ -51,6 +98,7 @@ class DGR_Admin_Columns {
 			case 'dgr_price_total':
 				$price = get_post_meta( $post_id, '_dgr_unit_price_total', true );
 				echo $price ? number_format( (float)$price, 2, ',', ' ' ) . ' zł' : '-';
+				echo '<input type="hidden" class="dgr_price_total_hidden_' . esc_attr( $post_id ) . '" value="' . esc_attr( $price ) . '">';
 				break;
 			case 'dgr_price_m2':
 				$price = get_post_meta( $post_id, '_dgr_unit_price_m2', true );
@@ -137,8 +185,12 @@ class DGR_Admin_Columns {
 					<span class="input-text-wrap">
 						<select name="dgr_unit_status" class="dgr_unit_status">
 							<option value="available"><?php _e( 'Dostępny', 'wp-deweloper-gov-reporter' ); ?></option>
+							<option value="offer"><?php _e( 'Oferta specjalna', 'wp-deweloper-gov-reporter' ); ?></option>
 							<option value="reserved"><?php _e( 'Zarezerwowany', 'wp-deweloper-gov-reporter' ); ?></option>
+							<option value="reservation_agreement"><?php _e( 'Umowa rezerwacyjna', 'wp-deweloper-gov-reporter' ); ?></option>
+							<option value="developer_agreement"><?php _e( 'Umowa deweloperska', 'wp-deweloper-gov-reporter' ); ?></option>
 							<option value="sold"><?php _e( 'Sprzedany', 'wp-deweloper-gov-reporter' ); ?></option>
+							<option value="transferred"><?php _e( 'Przekazany', 'wp-deweloper-gov-reporter' ); ?></option>
 						</select>
 					</span>
 				</label>
@@ -146,22 +198,46 @@ class DGR_Admin_Columns {
 				<?php wp_nonce_field( 'dgr_save_unit_data', 'dgr_unit_nonce' ); ?>
 			</div>
 		</fieldset>
-		<script>
-		// Simple JS to populate quick edit fields
+		<?php
+	}
+
+	public function quick_edit_javascript() {
+		global $current_screen;
+		if ( 'edit-dgr_unit' !== $current_screen->id ) {
+			return;
+		}
+		?>
+		<script type="text/javascript">
 		document.addEventListener('DOMContentLoaded', function() {
-			const wp_inline_edit = inlineEditPost.edit;
-			inlineEditPost.edit = function( id ) {
-				wp_inline_edit.apply( this, arguments );
-				const post_id = 0;
-				if ( typeof( id ) == 'object' ) {
-					post_id = parseInt( this.getId( id ) );
+			var $ = jQuery;
+			var _edit = inlineEditPost.edit;
+			inlineEditPost.edit = function(id) {
+				var args = [].slice.call(arguments);
+				_edit.apply(this, args);
+
+				if (typeof(id) == 'object') {
+					id = this.getId(id);
 				}
-				if ( post_id > 0 ) {
-					// We need to fetch values from columns.
-					// The columns class names correspond to our registered columns.
-					// But values are rendered HTML. We might need hidden inputs in columns or fetch via AJAX.
-					// For simplicity in this MVP, we won't auto-populate, just allow setting new values.
-					// Or better: Use hidden inputs in the column render.
+
+				if (this.type == 'dgr_unit') {
+					var row = $('#inline_' + id);
+					var editRow = $('#edit-' + id);
+
+					// Get values from hidden inputs in the column (we need to add them first in render_unit_columns)
+					// Alternative: Fetch raw value via AJAX if not present.
+					// But wait, render_unit_columns just echoes text.
+					// We need to add hidden inputs to render_unit_columns to make this work reliably.
+
+					// For now, let's grab the text content and try to parse, OR just leave fields empty but ONLY save if they are not empty.
+					// But DGR_Metaboxes::save_meta_boxes saves if isset($_POST['field']).
+					// So if we leave them empty, empty string is saved.
+
+					// FIX: We must populate the fields. Let's rely on data attributes or hidden inputs we inject now.
+					var priceTotal = $('.dgr_price_total_hidden_' + id).val();
+					var status = $('.dgr_status_hidden_' + id).val();
+
+					editRow.find('input[name="dgr_unit_price_total"]').val(priceTotal);
+					editRow.find('select[name="dgr_unit_status"]').val(status);
 				}
 			};
 		});

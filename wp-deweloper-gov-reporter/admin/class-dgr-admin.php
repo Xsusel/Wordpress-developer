@@ -15,6 +15,52 @@ class DGR_Admin {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_init', array( $this, 'maybe_flush_rewrite_rules' ) );
 		add_action( 'admin_init', array( $this, 'process_export_csv' ) );
+		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widgets' ) );
+	}
+
+	public function add_dashboard_widgets() {
+		wp_add_dashboard_widget(
+			'dgr_dashboard_overview',
+			__( 'Statystyki Dewelopera (DGR)', 'wp-deweloper-gov-reporter' ),
+			array( $this, 'render_dashboard_widget' )
+		);
+	}
+
+	public function render_dashboard_widget() {
+		$posts = get_posts( array(
+			'post_type'      => 'dgr_unit',
+			'posts_per_page' => -1,
+			'post_status'    => 'any',
+		) );
+
+		$total = count( $posts );
+		$available = 0;
+		$sold = 0;
+		$reserved = 0;
+		$total_value_available = 0;
+
+		foreach ( $posts as $post ) {
+			$status = get_post_meta( $post->ID, '_dgr_unit_status', true );
+			$price  = (float) get_post_meta( $post->ID, '_dgr_unit_price_total', true );
+
+			if ( 'available' === $status || 'offer' === $status ) {
+				$available++;
+				$total_value_available += $price;
+			} elseif ( 'sold' === $status || 'transferred' === $status ) {
+				$sold++;
+			} elseif ( 'reserved' === $status || 'reservation_agreement' === $status || 'developer_agreement' === $status ) {
+				$reserved++;
+			}
+		}
+
+		echo '<div class="main">';
+		echo '<p><strong>' . __( 'Wszystkie lokale:', 'wp-deweloper-gov-reporter' ) . '</strong> ' . $total . '</p>';
+		echo '<p><span style="color: green;">●</span> <strong>' . __( 'Dostępne:', 'wp-deweloper-gov-reporter' ) . '</strong> ' . $available . '</p>';
+		echo '<p><span style="color: orange;">●</span> <strong>' . __( 'Zarezerwowane:', 'wp-deweloper-gov-reporter' ) . '</strong> ' . $reserved . '</p>';
+		echo '<p><span style="color: red;">●</span> <strong>' . __( 'Sprzedane:', 'wp-deweloper-gov-reporter' ) . '</strong> ' . $sold . '</p>';
+		echo '<hr>';
+		echo '<p><strong>' . __( 'Wartość dostępnych lokali:', 'wp-deweloper-gov-reporter' ) . '</strong><br> ' . number_format( $total_value_available, 2, ',', ' ' ) . ' PLN</p>';
+		echo '</div>';
 	}
 
 	public function maybe_flush_rewrite_rules() {
