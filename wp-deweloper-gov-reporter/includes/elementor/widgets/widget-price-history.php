@@ -25,7 +25,34 @@ class DGR_Price_History_Widget extends \Elementor\Widget_Base {
 		return array( 'price', 'history', 'deweloper', 'gov' );
 	}
 
+	protected function register_controls() {
+		$this->start_controls_section(
+			'content_section',
+			[
+				'label' => esc_html__( 'Ustawienia', 'wp-deweloper-gov-reporter' ),
+				'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
+			]
+		);
+
+		$this->add_control(
+			'view_type',
+			[
+				'label' => esc_html__( 'Widok', 'wp-deweloper-gov-reporter' ),
+				'type' => \Elementor\Controls_Manager::SELECT,
+				'default' => 'both',
+				'options' => [
+					'table' => esc_html__( 'Tylko Tabela', 'wp-deweloper-gov-reporter' ),
+					'chart' => esc_html__( 'Tylko Wykres', 'wp-deweloper-gov-reporter' ),
+					'both'  => esc_html__( 'Tabela i Wykres', 'wp-deweloper-gov-reporter' ),
+				],
+			]
+		);
+
+		$this->end_controls_section();
+	}
+
 	protected function render() {
-		echo do_shortcode( '[dgr_price_history]' );
+		$settings = $this->get_settings_for_display();
+		echo do_shortcode( '[dgr_price_history view="' . esc_attr( $settings['view_type'] ) . '"]' );
 	}
 }

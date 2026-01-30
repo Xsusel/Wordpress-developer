@@ -66,4 +66,37 @@ class DGR_Price_History {
 
 		update_post_meta( $post_id, '_dgr_price_history', $history );
 	}
+
+	public static function get_lowest_price_30_days( $post_id ) {
+		$history = get_post_meta( $post_id, '_dgr_price_history', true );
+		if ( empty( $history ) || ! is_array( $history ) ) {
+			return false;
+		}
+
+		$thirty_days_ago = strtotime( '-30 days' );
+		$current_time    = current_time( 'timestamp' ); // now
+
+		$relevant_prices = array();
+
+		foreach ( $history as $entry ) {
+			$entry_time = strtotime( $entry['date'] );
+			// Check if entry is within the last 30 days
+			if ( $entry_time >= $thirty_days_ago && $entry_time <= $current_time ) {
+				if ( isset( $entry['price_total'] ) && $entry['price_total'] > 0 ) {
+					$relevant_prices[] = (float) $entry['price_total'];
+				}
+			}
+		}
+
+		if ( empty( $relevant_prices ) ) {
+			// If no change in last 30 days, current price is technically the lowest in that period (assuming no drops)
+			// But strictly speaking, Omnibus asks for lowest price *before* the reduction.
+			// For this reporter, we just return the min of recorded history in that window.
+			// If array empty, maybe fallback to current price?
+			$current_price = get_post_meta( $post_id, '_dgr_unit_price_total', true );
+			return (float) $current_price;
+		}
+
+		return min( $relevant_prices );
+	}
 }
