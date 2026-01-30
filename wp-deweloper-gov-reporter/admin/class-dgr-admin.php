@@ -16,6 +16,11 @@ class DGR_Admin {
 		add_action( 'admin_init', array( $this, 'maybe_flush_rewrite_rules' ) );
 		add_action( 'admin_init', array( $this, 'process_export_csv' ) );
 		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widgets' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
+	}
+
+	public function enqueue_admin_styles() {
+		wp_enqueue_style( 'dgr-admin-css', plugins_url( '../assets/css/dgr-admin.css', __FILE__ ), array(), '1.0.0' );
 	}
 
 	public function add_dashboard_widgets() {

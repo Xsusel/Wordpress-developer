@@ -21,7 +21,8 @@ class DGR_Public {
 		// Enqueue Chart.js from CDN
 		wp_register_script( 'chartjs', 'https://cdn.jsdelivr.net/npm/chart.js', array(), '4.4.0', true );
 
-		// Enqueue custom script for filters if needed (inline usually sufficient for simple filtering)
+		// Enqueue Frontend CSS
+		wp_enqueue_style( 'dgr-frontend-css', plugins_url( '../assets/css/dgr-frontend.css', __FILE__ ), array(), '1.0.0' );
 	}
 
 	public function render_price_history( $atts ) {
@@ -361,6 +362,51 @@ class DGR_Public {
 				<?php endif; endif; ?>
 			</ul>
 		</div>
+
+		<?php
+		// Related Units Logic
+		$parent_id = isset( $meta['_dgr_unit_parent_investment'][0] ) ? $meta['_dgr_unit_parent_investment'][0] : 0;
+		if ( $parent_id ) {
+			$related_query = new WP_Query( array(
+				'post_type' => 'dgr_unit',
+				'posts_per_page' => 3,
+				'post__not_in' => array( $post_id ),
+				'meta_query' => array(
+					'relation' => 'AND',
+					array(
+						'key' => '_dgr_unit_parent_investment',
+						'value' => $parent_id,
+					),
+					array(
+						'key' => '_dgr_unit_status',
+						'value' => 'available', // Only show available units
+					),
+				),
+			) );
+
+			if ( $related_query->have_posts() ) {
+				echo '<div class="dgr-related-units">';
+				echo '<h3>' . __( 'Inne dostępne lokale w tej inwestycji', 'wp-deweloper-gov-reporter' ) . '</h3>';
+				echo '<div class="dgr-related-grid">';
+				while ( $related_query->have_posts() ) {
+					$related_query->the_post();
+					$rel_meta = get_post_meta( get_the_ID() );
+					$rel_rooms = isset( $rel_meta['_dgr_unit_rooms'][0] ) ? $rel_meta['_dgr_unit_rooms'][0] : '-';
+					$rel_area = isset( $rel_meta['_dgr_unit_area'][0] ) ? $rel_meta['_dgr_unit_area'][0] : '-';
+					$rel_price = isset( $rel_meta['_dgr_unit_price_total'][0] ) ? number_format( floatval( $rel_meta['_dgr_unit_price_total'][0] ), 0, ',', ' ' ) . ' zł' : '-';
+
+					echo '<div class="dgr-related-item">';
+					echo '<h4><a href="' . get_permalink() . '">' . get_the_title() . '</a></h4>';
+					echo '<p>' . sprintf( __( '%s pok., %s m²', 'wp-deweloper-gov-reporter' ), $rel_rooms, $rel_area ) . '</p>';
+					echo '<p><strong>' . $rel_price . '</strong></p>';
+					echo '</div>';
+				}
+				echo '</div>';
+				echo '</div>';
+				wp_reset_postdata();
+			}
+		}
+		?>
 		<?php
 		return ob_get_clean();
 	}

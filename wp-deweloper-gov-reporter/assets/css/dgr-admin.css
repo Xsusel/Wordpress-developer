@@ -1,0 +1,56 @@
+/* Admin Styles for WP Deweloper Gov Reporter */
+
+/* Meta Boxes Grid Layout */
+#dgr_unit_details .inside {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+#dgr_unit_details .inside p {
+    margin: 0;
+}
+
+#dgr_unit_details .inside p:has(textarea) {
+    grid-column: span 2;
+}
+
+#dgr_unit_details .inside label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+#dgr_unit_details .inside input,
+#dgr_unit_details .inside select {
+    width: 100%;
+}
+
+/* Dashboard Widget */
+#dgr_dashboard_overview .main {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+#dgr_dashboard_overview .main p {
+    margin: 0;
+    padding: 5px 0;
+    font-size: 14px;
+}
+
+#dgr_dashboard_overview .main hr {
+    grid-column: span 2;
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 10px 0;
+}
+
+#dgr_dashboard_overview .main p:last-child {
+    grid-column: span 2;
+    text-align: center;
+    font-size: 1.1em;
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 4px;
+}
