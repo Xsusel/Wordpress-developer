@@ -18,8 +18,10 @@ class DGR_Elementor_Manager {
 	public function register_widgets( $widgets_manager ) {
 		require_once plugin_dir_path( __FILE__ ) . 'widgets/widget-price-history.php';
 		require_once plugin_dir_path( __FILE__ ) . 'widgets/widget-unit-details.php';
+		require_once plugin_dir_path( __FILE__ ) . 'widgets/widget-unit-list.php';
 
 		$widgets_manager->register( new \DGR_Price_History_Widget() );
 		$widgets_manager->register( new \DGR_Unit_Details_Widget() );
+		$widgets_manager->register( new \DGR_Unit_List_Widget() );
 	}
 }

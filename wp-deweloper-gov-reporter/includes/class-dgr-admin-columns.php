@@ -89,7 +89,10 @@ class DGR_Admin_Columns {
 				break;
 			case 'dgr_status':
 				$status = get_post_meta( $post_id, '_dgr_unit_status', true );
-				echo esc_html( ucfirst( $status ) );
+				$label = ucfirst( $status );
+				// Map status to a safe class name
+				$class_suffix = sanitize_html_class( $status );
+				printf( '<span class="dgr-admin-status-badge status-%s">%s</span>', esc_attr( $class_suffix ), esc_html( $label ) );
 				echo '<input type="hidden" class="dgr_status_hidden_' . esc_attr( $post_id ) . '" value="' . esc_attr( $status ) . '">';
 				break;
 			case 'dgr_area':
