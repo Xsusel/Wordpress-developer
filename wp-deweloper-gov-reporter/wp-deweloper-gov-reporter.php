@@ -74,6 +74,7 @@ class WP_Deweloper_Gov_Reporter {
 
 		if ( is_admin() ) {
 			require_once plugin_dir_path( __FILE__ ) . 'admin/class-dgr-admin.php';
+			require_once plugin_dir_path( __FILE__ ) . 'includes/class-dgr-admin-columns.php';
 		}
 		require_once plugin_dir_path( __FILE__ ) . 'public/class-dgr-public.php';
 	}
@@ -101,6 +102,9 @@ class WP_Deweloper_Gov_Reporter {
 		if ( is_admin() ) {
 			$plugin_admin = new DGR_Admin( $this->get_plugin_name(), $this->get_version() );
 			$plugin_admin->init();
+
+			$admin_columns = new DGR_Admin_Columns();
+			$admin_columns->init();
 		}
 
 		add_action( 'dgr_daily_report_event', array( $this, 'run_daily_report' ) );

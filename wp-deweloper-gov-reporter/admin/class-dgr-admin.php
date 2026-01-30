@@ -14,6 +14,7 @@ class DGR_Admin {
 		add_action( 'admin_menu', array( $this, 'add_plugin_admin_menu' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_init', array( $this, 'maybe_flush_rewrite_rules' ) );
+		add_action( 'admin_init', array( $this, 'process_export_csv' ) );
 	}
 
 	public function maybe_flush_rewrite_rules() {
@@ -109,9 +110,76 @@ class DGR_Admin {
 				?>
 			</form>
 			<hr>
+			<h2>Eksport Danych</h2>
+			<form method="post" action="">
+				<?php wp_nonce_field( 'dgr_export_csv_action', 'dgr_export_csv_nonce' ); ?>
+				<input type="hidden" name="dgr_export_csv" value="1">
+				<p>
+					<?php submit_button( 'Eksportuj wszystkie lokale do CSV', 'secondary', 'submit', false ); ?>
+				</p>
+			</form>
+			<hr>
 			<h2>Ostatnie Logi</h2>
 			<textarea readonly class="widefat" rows="10"><?php echo esc_textarea( get_option( 'dgr_api_log' ) ); ?></textarea>
 		</div>
 		<?php
+	}
+
+	public function process_export_csv() {
+		if ( ! isset( $_POST['dgr_export_csv'] ) ) {
+			return;
+		}
+
+		if ( ! isset( $_POST['dgr_export_csv_nonce'] ) || ! wp_verify_nonce( $_POST['dgr_export_csv_nonce'], 'dgr_export_csv_action' ) ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		// Clean buffer
+		if ( ob_get_level() ) {
+			ob_end_clean();
+		}
+
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename=lokale-export-' . date( 'Y-m-d' ) . '.csv' );
+
+		$output = fopen( 'php://output', 'w' );
+
+		// Add BOM for Excel UTF-8 compatibility
+		fputs( $output, "\xEF\xBB\xBF" );
+
+		// Headers
+		fputcsv( $output, array( 'ID', 'Inwestycja', 'Numer Lokalu', 'Powierzchnia', 'Pokoje', 'Piętro', 'Status', 'Cena Całkowita', 'Cena m2' ) );
+
+		// Data
+		$units = get_posts( array(
+			'post_type'      => 'dgr_unit',
+			'posts_per_page' => -1,
+			'post_status'    => 'any',
+		) );
+
+		foreach ( $units as $unit ) {
+			$meta = get_post_meta( $unit->ID );
+			$parent_id = isset( $meta['_dgr_unit_parent_investment'][0] ) ? $meta['_dgr_unit_parent_investment'][0] : 0;
+			$investment_name = $parent_id ? get_the_title( $parent_id ) : '';
+
+			fputcsv( $output, array(
+				$unit->ID,
+				$investment_name,
+				isset( $meta['_dgr_unit_id'][0] ) ? $meta['_dgr_unit_id'][0] : '',
+				isset( $meta['_dgr_unit_area'][0] ) ? $meta['_dgr_unit_area'][0] : '',
+				isset( $meta['_dgr_unit_rooms'][0] ) ? $meta['_dgr_unit_rooms'][0] : '',
+				isset( $meta['_dgr_unit_floor'][0] ) ? $meta['_dgr_unit_floor'][0] : '',
+				isset( $meta['_dgr_unit_status'][0] ) ? $meta['_dgr_unit_status'][0] : '',
+				isset( $meta['_dgr_unit_price_total'][0] ) ? $meta['_dgr_unit_price_total'][0] : '',
+				isset( $meta['_dgr_unit_price_m2'][0] ) ? $meta['_dgr_unit_price_m2'][0] : '',
+			) );
+		}
+
+		fclose( $output );
+		exit;
 	}
 }

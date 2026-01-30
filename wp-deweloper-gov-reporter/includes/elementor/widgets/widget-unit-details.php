@@ -145,6 +145,53 @@ class DGR_Unit_Details_Widget extends \Elementor\Widget_Base {
 
 		$this->end_controls_section();
 
+		$this->start_controls_section(
+			'style_section',
+			[
+				'label' => esc_html__( 'Styl', 'wp-deweloper-gov-reporter' ),
+				'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_control(
+			'list_color',
+			[
+				'label' => esc_html__( 'Kolor Tekstu', 'wp-deweloper-gov-reporter' ),
+				'type' => \Elementor\Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .dgr-unit-details ul.dgr-list li' => 'color: {{VALUE}}',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			\Elementor\Group_Control_Typography::get_type(),
+			[
+				'name' => 'list_typography',
+				'selector' => '{{WRAPPER}} .dgr-unit-details ul.dgr-list li',
+			]
+		);
+
+		$this->add_responsive_control(
+			'item_spacing',
+			[
+				'label' => esc_html__( 'Odstęp między elementami', 'wp-deweloper-gov-reporter' ),
+				'type' => \Elementor\Controls_Manager::SLIDER,
+				'size_units' => [ 'px', 'em' ],
+				'range' => [
+					'px' => [
+						'min' => 0,
+						'max' => 50,
+					],
+				],
+				'selectors' => [
+					'{{WRAPPER}} .dgr-unit-details ul.dgr-list li' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->end_controls_section();
+
 	}
 
 	protected function render() {

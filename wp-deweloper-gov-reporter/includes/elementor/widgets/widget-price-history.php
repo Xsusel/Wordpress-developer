@@ -49,6 +49,86 @@ class DGR_Price_History_Widget extends \Elementor\Widget_Base {
 		);
 
 		$this->end_controls_section();
+
+		$this->start_controls_section(
+			'style_section',
+			[
+				'label' => esc_html__( 'Styl', 'wp-deweloper-gov-reporter' ),
+				'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_control(
+			'heading_table',
+			[
+				'label' => esc_html__( 'Tabela', 'wp-deweloper-gov-reporter' ),
+				'type' => \Elementor\Controls_Manager::HEADING,
+				'separator' => 'before',
+				'condition' => [
+					'view_type' => ['table', 'both'],
+				],
+			]
+		);
+
+		$this->add_control(
+			'table_border_color',
+			[
+				'label' => esc_html__( 'Kolor Obramowania', 'wp-deweloper-gov-reporter' ),
+				'type' => \Elementor\Controls_Manager::COLOR,
+				'condition' => [
+					'view_type' => ['table', 'both'],
+				],
+				'selectors' => [
+					'{{WRAPPER}} .dgr-table, {{WRAPPER}} .dgr-table th, {{WRAPPER}} .dgr-table td' => 'border-color: {{VALUE}}',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			\Elementor\Group_Control_Typography::get_type(),
+			[
+				'name' => 'table_typography',
+				'selector' => '{{WRAPPER}} .dgr-table th, {{WRAPPER}} .dgr-table td',
+				'condition' => [
+					'view_type' => ['table', 'both'],
+				],
+			]
+		);
+
+		$this->add_control(
+			'heading_chart',
+			[
+				'label' => esc_html__( 'Wykres', 'wp-deweloper-gov-reporter' ),
+				'type' => \Elementor\Controls_Manager::HEADING,
+				'separator' => 'before',
+				'condition' => [
+					'view_type' => ['chart', 'both'],
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'chart_height',
+			[
+				'label' => esc_html__( 'Wysokość Wykresu', 'wp-deweloper-gov-reporter' ),
+				'type' => \Elementor\Controls_Manager::SLIDER,
+				'size_units' => [ 'px', 'vh' ],
+				'range' => [
+					'px' => [
+						'min' => 100,
+						'max' => 600,
+					],
+				],
+				'selectors' => [
+					'{{WRAPPER}} .dgr-chart-container' => 'height: {{SIZE}}{{UNIT}} !important;',
+				],
+				'condition' => [
+					'view_type' => ['chart', 'both'],
+				],
+			]
+		);
+
+		$this->end_controls_section();
 	}
 
 	protected function render() {
