@@ -1,0 +1,10 @@
+{
+    "name": "xsusel/wp-deweloper-gov-reporter",
+    "description": "WordPress Price Reporting Plugin for Developers",
+    "type": "wordpress-plugin",
+    "require-dev": {
+        "phpunit/phpunit": "^10",
+        "brain/monkey": "^2.6",
+        "mockery/mockery": "^1.6"
+    }
+}
