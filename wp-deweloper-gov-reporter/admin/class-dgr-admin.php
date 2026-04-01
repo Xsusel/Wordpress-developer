@@ -21,11 +21,42 @@ class DGR_Admin {
 		add_action( 'admin_init', array( $this, 'process_export_csv' ) );
 		add_action( 'admin_init', array( $this, 'process_generate_now' ) );
 		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widgets' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+		add_action( 'wp_ajax_dgr_lookup_nip', array( $this, 'ajax_lookup_nip' ) );
 	}
 
-	public function enqueue_admin_styles() {
-		wp_enqueue_style( 'dgr-admin-css', plugins_url( '../assets/css/dgr-admin.css', __FILE__ ), array(), '1.1.0' );
+	public function enqueue_admin_assets( $hook ) {
+		wp_enqueue_style( 'dgr-admin-css', plugins_url( '../assets/css/dgr-admin.css', __FILE__ ), array(), '1.2.0' );
+
+		// Load NIP lookup JS only on relevant pages (investment edit, settings)
+		$screen = get_current_screen();
+		$load_nip_js = false;
+
+		if ( $screen ) {
+			// Investment edit screen
+			if ( 'dgr_investment' === $screen->post_type && in_array( $screen->base, array( 'post', 'post-new' ), true ) ) {
+				$load_nip_js = true;
+			}
+			// Plugin settings page
+			if ( 'toplevel_page_wp-deweloper-gov-reporter' === $screen->id ) {
+				$load_nip_js = true;
+			}
+		}
+
+		if ( $load_nip_js ) {
+			wp_enqueue_script( 'dgr-admin-js', plugins_url( '../assets/js/dgr-admin.js', __FILE__ ), array( 'jquery' ), '1.2.0', true );
+			wp_localize_script( 'dgr-admin-js', 'dgr_admin', array(
+				'ajaxurl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( 'dgr_nip_lookup' ),
+				'i18n'    => array(
+					'lookup'      => __( 'Pobierz dane z GUS', 'wp-deweloper-gov-reporter' ),
+					'searching'   => __( 'Szukam...', 'wp-deweloper-gov-reporter' ),
+					'not_found'   => __( 'Nie znaleziono firmy o podanym NIP.', 'wp-deweloper-gov-reporter' ),
+					'invalid_nip' => __( 'NIP musi mieć 10 cyfr.', 'wp-deweloper-gov-reporter' ),
+					'error'       => __( 'Błąd połączenia z serwerem.', 'wp-deweloper-gov-reporter' ),
+				),
+			) );
+		}
 	}
 
 	public function add_dashboard_widgets() {
@@ -392,5 +423,90 @@ class DGR_Admin {
 
 		fclose( $output );
 		exit;
+	}
+
+	/**
+	 * AJAX handler: Lookup company data by NIP using Biała Lista VAT API (Ministry of Finance).
+	 * Free, no API key required. Returns company name, address, KRS, REGON, VAT status.
+	 */
+	public function ajax_lookup_nip() {
+		check_ajax_referer( 'dgr_nip_lookup', 'nonce' );
+
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Brak uprawnień.', 'wp-deweloper-gov-reporter' ) ) );
+		}
+
+		$nip = isset( $_POST['nip'] ) ? preg_replace( '/[^0-9]/', '', sanitize_text_field( $_POST['nip'] ) ) : '';
+
+		if ( strlen( $nip ) !== 10 ) {
+			wp_send_json_error( array( 'message' => __( 'NIP musi mieć 10 cyfr.', 'wp-deweloper-gov-reporter' ) ) );
+		}
+
+		// Validate NIP checksum (Polish NIP validation)
+		if ( ! $this->validate_nip_checksum( $nip ) ) {
+			wp_send_json_error( array( 'message' => __( 'Nieprawidłowa suma kontrolna NIP.', 'wp-deweloper-gov-reporter' ) ) );
+		}
+
+		// Check transient cache first (cache for 24h to avoid hammering the API)
+		$cache_key = 'dgr_nip_' . $nip;
+		$cached = get_transient( $cache_key );
+		if ( false !== $cached ) {
+			wp_send_json_success( $cached );
+		}
+
+		// Call Biała Lista VAT API (Ministry of Finance) - free, no auth required
+		$date = wp_date( 'Y-m-d' );
+		$api_url = sprintf( 'https://wl-api.mf.gov.pl/api/search/nip/%s?date=%s', $nip, $date );
+
+		$response = wp_remote_get( $api_url, array(
+			'timeout' => 15,
+			'headers' => array(
+				'Accept' => 'application/json',
+			),
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			wp_send_json_error( array( 'message' => __( 'Błąd połączenia z API Ministerstwa Finansów: ', 'wp-deweloper-gov-reporter' ) . $response->get_error_message() ) );
+		}
+
+		$http_code = wp_remote_retrieve_response_code( $response );
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( 200 !== $http_code || empty( $body['result']['subject'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'Nie znaleziono firmy o podanym NIP w rejestrze VAT.', 'wp-deweloper-gov-reporter' ) ) );
+		}
+
+		$subject = $body['result']['subject'];
+
+		$result = array(
+			'name'       => isset( $subject['name'] ) ? $subject['name'] : '',
+			'nip'        => isset( $subject['nip'] ) ? $subject['nip'] : $nip,
+			'regon'      => isset( $subject['regon'] ) ? $subject['regon'] : '',
+			'krs'        => isset( $subject['krs'] ) ? $subject['krs'] : '',
+			'address'    => isset( $subject['residenceAddress'] ) ? $subject['residenceAddress'] : ( isset( $subject['workingAddress'] ) ? $subject['workingAddress'] : '' ),
+			'status_vat' => isset( $subject['statusVat'] ) ? $subject['statusVat'] : '',
+		);
+
+		// Cache for 24 hours
+		set_transient( $cache_key, $result, DAY_IN_SECONDS );
+
+		wp_send_json_success( $result );
+	}
+
+	/**
+	 * Validate Polish NIP checksum.
+	 * Weights: 6, 5, 7, 2, 3, 4, 5, 6, 7
+	 */
+	private function validate_nip_checksum( $nip ) {
+		$weights = array( 6, 5, 7, 2, 3, 4, 5, 6, 7 );
+		$sum = 0;
+
+		for ( $i = 0; $i < 9; $i++ ) {
+			$sum += intval( $nip[ $i ] ) * $weights[ $i ];
+		}
+
+		$check = $sum % 11;
+
+		return $check === intval( $nip[9] );
 	}
 }
