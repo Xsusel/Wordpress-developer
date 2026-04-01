@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 class DGR_Metaboxes {
 
 	public function init() {
@@ -35,16 +39,17 @@ class DGR_Metaboxes {
 		$nip     = get_post_meta( $post->ID, '_dgr_investment_nip', true );
 		?>
 		<p>
-			<label for="dgr_investment_address"><?php _e( 'Adres', 'wp-deweloper-gov-reporter' ); ?></label>
+			<label for="dgr_investment_address"><?php esc_html_e( 'Adres', 'wp-deweloper-gov-reporter' ); ?></label>
 			<input type="text" id="dgr_investment_address" name="dgr_investment_address" value="<?php echo esc_attr( $address ); ?>" class="widefat">
 		</p>
 		<p>
-			<label for="dgr_investment_id"><?php _e( 'ID Inwestycji (gov)', 'wp-deweloper-gov-reporter' ); ?></label>
+			<label for="dgr_investment_id"><?php esc_html_e( 'ID Inwestycji (gov)', 'wp-deweloper-gov-reporter' ); ?></label>
 			<input type="text" id="dgr_investment_id" name="dgr_investment_id" value="<?php echo esc_attr( $gov_id ); ?>" class="widefat">
+			<small><?php esc_html_e( 'Identyfikator nadany przez urząd.', 'wp-deweloper-gov-reporter' ); ?></small>
 		</p>
 		<p>
-			<label for="dgr_investment_nip"><?php _e( 'NIP Dewelopera', 'wp-deweloper-gov-reporter' ); ?></label>
-			<input type="text" id="dgr_investment_nip" name="dgr_investment_nip" value="<?php echo esc_attr( $nip ); ?>" class="widefat">
+			<label for="dgr_investment_nip"><?php esc_html_e( 'NIP Dewelopera', 'wp-deweloper-gov-reporter' ); ?></label>
+			<input type="text" id="dgr_investment_nip" name="dgr_investment_nip" value="<?php echo esc_attr( $nip ); ?>" class="widefat" pattern="[0-9]{10}" title="<?php esc_attr_e( 'NIP: 10 cyfr', 'wp-deweloper-gov-reporter' ); ?>">
 		</p>
 		<?php
 	}
@@ -60,9 +65,8 @@ class DGR_Metaboxes {
 		$rooms             = get_post_meta( $post->ID, '_dgr_unit_rooms', true );
 		$floor             = get_post_meta( $post->ID, '_dgr_unit_floor', true );
 		$status            = get_post_meta( $post->ID, '_dgr_unit_status', true );
-		$dependencies      = get_post_meta( $post->ID, '_dgr_unit_dependencies', true ); // JSON string
+		$dependencies      = get_post_meta( $post->ID, '_dgr_unit_dependencies', true );
 
-		// Get all investments for dropdown
 		$investments = get_posts( array(
 			'post_type'      => 'dgr_investment',
 			'posts_per_page' => -1,
@@ -70,54 +74,54 @@ class DGR_Metaboxes {
 		) );
 		?>
 		<p>
-			<label for="dgr_unit_parent_investment"><?php _e( 'Inwestycja', 'wp-deweloper-gov-reporter' ); ?></label>
-			<select id="dgr_unit_parent_investment" name="dgr_unit_parent_investment" class="widefat">
-				<option value=""><?php _e( 'Wybierz Inwestycję', 'wp-deweloper-gov-reporter' ); ?></option>
+			<label for="dgr_unit_parent_investment"><?php esc_html_e( 'Inwestycja', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
+			<select id="dgr_unit_parent_investment" name="dgr_unit_parent_investment" class="widefat" required>
+				<option value=""><?php esc_html_e( 'Wybierz Inwestycję', 'wp-deweloper-gov-reporter' ); ?></option>
 				<?php foreach ( $investments as $investment ) : ?>
 					<option value="<?php echo esc_attr( $investment->ID ); ?>" <?php selected( $parent_investment, $investment->ID ); ?>><?php echo esc_html( $investment->post_title ); ?></option>
 				<?php endforeach; ?>
 			</select>
 		</p>
 		<p>
-			<label for="dgr_unit_id"><?php _e( 'Numer Lokalu / ID', 'wp-deweloper-gov-reporter' ); ?></label>
-			<input type="text" id="dgr_unit_id" name="dgr_unit_id" value="<?php echo esc_attr( $unit_id ); ?>" class="widefat">
+			<label for="dgr_unit_id"><?php esc_html_e( 'Numer Lokalu / ID', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
+			<input type="text" id="dgr_unit_id" name="dgr_unit_id" value="<?php echo esc_attr( $unit_id ); ?>" class="widefat" required>
 		</p>
 		<p>
-			<label for="dgr_unit_price_total"><?php _e( 'Cena Całkowita (Brutto PLN)', 'wp-deweloper-gov-reporter' ); ?></label>
-			<input type="number" step="0.01" id="dgr_unit_price_total" name="dgr_unit_price_total" value="<?php echo esc_attr( $price_total ); ?>" class="widefat">
+			<label for="dgr_unit_price_total"><?php esc_html_e( 'Cena Całkowita (Brutto PLN)', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
+			<input type="number" step="0.01" min="0.01" id="dgr_unit_price_total" name="dgr_unit_price_total" value="<?php echo esc_attr( $price_total ); ?>" class="widefat" required>
 		</p>
 		<p>
-			<label for="dgr_unit_price_m2"><?php _e( 'Cena za m² (Brutto PLN)', 'wp-deweloper-gov-reporter' ); ?></label>
-			<input type="number" step="0.01" id="dgr_unit_price_m2" name="dgr_unit_price_m2" value="<?php echo esc_attr( $price_m2 ); ?>" class="widefat">
+			<label for="dgr_unit_price_m2"><?php esc_html_e( 'Cena za m² (Brutto PLN)', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
+			<input type="number" step="0.01" min="0.01" id="dgr_unit_price_m2" name="dgr_unit_price_m2" value="<?php echo esc_attr( $price_m2 ); ?>" class="widefat" required>
 		</p>
 		<p>
-			<label for="dgr_unit_area"><?php _e( 'Powierzchnia (m²)', 'wp-deweloper-gov-reporter' ); ?></label>
-			<input type="number" step="0.01" id="dgr_unit_area" name="dgr_unit_area" value="<?php echo esc_attr( $area ); ?>" class="widefat">
+			<label for="dgr_unit_area"><?php esc_html_e( 'Powierzchnia (m²)', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
+			<input type="number" step="0.01" min="0.01" id="dgr_unit_area" name="dgr_unit_area" value="<?php echo esc_attr( $area ); ?>" class="widefat" required>
 		</p>
 		<p>
-			<label for="dgr_unit_rooms"><?php _e( 'Liczba Pokoi', 'wp-deweloper-gov-reporter' ); ?></label>
-			<input type="number" id="dgr_unit_rooms" name="dgr_unit_rooms" value="<?php echo esc_attr( $rooms ); ?>" class="widefat">
+			<label for="dgr_unit_rooms"><?php esc_html_e( 'Liczba Pokoi', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
+			<input type="number" min="1" id="dgr_unit_rooms" name="dgr_unit_rooms" value="<?php echo esc_attr( $rooms ); ?>" class="widefat" required>
 		</p>
 		<p>
-			<label for="dgr_unit_floor"><?php _e( 'Piętro', 'wp-deweloper-gov-reporter' ); ?></label>
-			<input type="number" id="dgr_unit_floor" name="dgr_unit_floor" value="<?php echo esc_attr( $floor ); ?>" class="widefat">
+			<label for="dgr_unit_floor"><?php esc_html_e( 'Piętro', 'wp-deweloper-gov-reporter' ); ?></label>
+			<input type="number" min="0" id="dgr_unit_floor" name="dgr_unit_floor" value="<?php echo esc_attr( $floor ); ?>" class="widefat">
 		</p>
 		<p>
-			<label for="dgr_unit_status"><?php _e( 'Status', 'wp-deweloper-gov-reporter' ); ?></label>
+			<label for="dgr_unit_status"><?php esc_html_e( 'Status', 'wp-deweloper-gov-reporter' ); ?></label>
 			<select id="dgr_unit_status" name="dgr_unit_status" class="widefat">
-				<option value="available" <?php selected( $status, 'available' ); ?>><?php _e( 'Dostępny', 'wp-deweloper-gov-reporter' ); ?></option>
-				<option value="offer" <?php selected( $status, 'offer' ); ?>><?php _e( 'Oferta specjalna', 'wp-deweloper-gov-reporter' ); ?></option>
-				<option value="reserved" <?php selected( $status, 'reserved' ); ?>><?php _e( 'Zarezerwowany', 'wp-deweloper-gov-reporter' ); ?></option>
-				<option value="reservation_agreement" <?php selected( $status, 'reservation_agreement' ); ?>><?php _e( 'Umowa rezerwacyjna', 'wp-deweloper-gov-reporter' ); ?></option>
-				<option value="developer_agreement" <?php selected( $status, 'developer_agreement' ); ?>><?php _e( 'Umowa deweloperska', 'wp-deweloper-gov-reporter' ); ?></option>
-				<option value="sold" <?php selected( $status, 'sold' ); ?>><?php _e( 'Sprzedany', 'wp-deweloper-gov-reporter' ); ?></option>
-				<option value="transferred" <?php selected( $status, 'transferred' ); ?>><?php _e( 'Przekazany', 'wp-deweloper-gov-reporter' ); ?></option>
+				<option value="available" <?php selected( $status, 'available' ); ?>><?php esc_html_e( 'Dostępny', 'wp-deweloper-gov-reporter' ); ?></option>
+				<option value="offer" <?php selected( $status, 'offer' ); ?>><?php esc_html_e( 'Oferta specjalna', 'wp-deweloper-gov-reporter' ); ?></option>
+				<option value="reserved" <?php selected( $status, 'reserved' ); ?>><?php esc_html_e( 'Zarezerwowany', 'wp-deweloper-gov-reporter' ); ?></option>
+				<option value="reservation_agreement" <?php selected( $status, 'reservation_agreement' ); ?>><?php esc_html_e( 'Umowa rezerwacyjna', 'wp-deweloper-gov-reporter' ); ?></option>
+				<option value="developer_agreement" <?php selected( $status, 'developer_agreement' ); ?>><?php esc_html_e( 'Umowa deweloperska', 'wp-deweloper-gov-reporter' ); ?></option>
+				<option value="sold" <?php selected( $status, 'sold' ); ?>><?php esc_html_e( 'Sprzedany', 'wp-deweloper-gov-reporter' ); ?></option>
+				<option value="transferred" <?php selected( $status, 'transferred' ); ?>><?php esc_html_e( 'Przekazany', 'wp-deweloper-gov-reporter' ); ?></option>
 			</select>
 		</p>
 		<p>
-			<label for="dgr_unit_dependencies"><?php _e( 'Przynależności (JSON)', 'wp-deweloper-gov-reporter' ); ?></label>
+			<label for="dgr_unit_dependencies"><?php esc_html_e( 'Przynależności (JSON)', 'wp-deweloper-gov-reporter' ); ?></label>
 			<textarea id="dgr_unit_dependencies" name="dgr_unit_dependencies" class="widefat" rows="3"><?php echo esc_textarea( $dependencies ); ?></textarea>
-			<small><?php _e( 'Format: [{"typ": "miejsce_postojowe", "cena": 45000}, ...]', 'wp-deweloper-gov-reporter' ); ?></small>
+			<small><?php esc_html_e( 'Format: [{"typ": "miejsce_postojowe", "cena": 45000}, {"typ": "komórka_lokatorska", "cena": 18000}]', 'wp-deweloper-gov-reporter' ); ?></small>
 		</p>
 		<?php
 	}
@@ -141,27 +145,43 @@ class DGR_Metaboxes {
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
 			if ( ! current_user_can( 'edit_post', $post_id ) ) return;
 
-			$fields = array(
-				'dgr_unit_parent_investment',
-				'dgr_unit_id',
-				'dgr_unit_price_total',
-				'dgr_unit_price_m2',
-				'dgr_unit_area',
-				'dgr_unit_rooms',
-				'dgr_unit_floor',
-				'dgr_unit_status',
-				'dgr_unit_dependencies'
-			);
-			foreach ( $fields as $field ) {
+			// Text fields
+			$text_fields = array( 'dgr_unit_parent_investment', 'dgr_unit_id', 'dgr_unit_status' );
+			foreach ( $text_fields as $field ) {
 				if ( isset( $_POST[ $field ] ) ) {
-					if ( $field === 'dgr_unit_dependencies' ) {
-						// Allow raw text for JSON, but strip tags to be safe. sanitize_textarea_field removes newlines which might break readable JSON?
-						// Actually sanitize_textarea_field preserves newlines but removes HTML.
-						$value = sanitize_textarea_field( $_POST[ $field ] );
-					} else {
-						$value = sanitize_text_field( $_POST[ $field ] );
+					update_post_meta( $post_id, '_' . $field, sanitize_text_field( $_POST[ $field ] ) );
+				}
+			}
+
+			// Numeric fields - validate as positive numbers
+			$numeric_fields = array(
+				'dgr_unit_price_total' => 0.01,
+				'dgr_unit_price_m2'    => 0.01,
+				'dgr_unit_area'        => 0.01,
+				'dgr_unit_rooms'       => 1,
+				'dgr_unit_floor'       => 0,
+			);
+
+			foreach ( $numeric_fields as $field => $min ) {
+				if ( isset( $_POST[ $field ] ) ) {
+					$value = floatval( $_POST[ $field ] );
+					if ( $value >= $min ) {
+						update_post_meta( $post_id, '_' . $field, $value );
 					}
-					update_post_meta( $post_id, '_' . $field, $value );
+				}
+			}
+
+			// Dependencies - validate as JSON
+			if ( isset( $_POST['dgr_unit_dependencies'] ) ) {
+				$raw = sanitize_textarea_field( $_POST['dgr_unit_dependencies'] );
+				if ( empty( trim( $raw ) ) ) {
+					update_post_meta( $post_id, '_dgr_unit_dependencies', '' );
+				} else {
+					$decoded = json_decode( $raw, true );
+					if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+						update_post_meta( $post_id, '_dgr_unit_dependencies', $raw );
+					}
+					// If invalid JSON, don't update - keep old value
 				}
 			}
 		}

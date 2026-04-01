@@ -1,14 +1,16 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 class DGR_Price_History {
 
 	public function init() {
-		// Run before Metaboxes save (priority 5 vs 10) to access old DB values
 		add_action( 'save_post_dgr_unit', array( $this, 'check_for_price_changes' ), 5 );
 	}
 
 	public function check_for_price_changes( $post_id ) {
-		// Verify Nonce (we can use the one from metaboxes as we are in the same form submission context)
 		if ( ! isset( $_POST['dgr_unit_nonce'] ) || ! wp_verify_nonce( $_POST['dgr_unit_nonce'], 'dgr_save_unit_data' ) ) {
 			return;
 		}
@@ -17,20 +19,22 @@ class DGR_Price_History {
 			return;
 		}
 
-		// Check if we have price data in POST
 		if ( ! isset( $_POST['dgr_unit_price_total'] ) || ! isset( $_POST['dgr_unit_price_m2'] ) ) {
 			return;
 		}
 
-		$new_price_total = sanitize_text_field( $_POST['dgr_unit_price_total'] );
-		$new_price_m2    = sanitize_text_field( $_POST['dgr_unit_price_m2'] );
+		$new_price_total = floatval( $_POST['dgr_unit_price_total'] );
+		$new_price_m2    = floatval( $_POST['dgr_unit_price_m2'] );
 
-		// Get old values
-		$old_price_total = get_post_meta( $post_id, '_dgr_unit_price_total', true );
-		$old_price_m2    = get_post_meta( $post_id, '_dgr_unit_price_m2', true );
+		// Skip invalid values
+		if ( $new_price_total <= 0 || $new_price_m2 <= 0 ) {
+			return;
+		}
 
-		// If this is a new post (old values empty) or values changed
-		if ( $old_price_total !== $new_price_total || $old_price_m2 !== $new_price_m2 ) {
+		$old_price_total = floatval( get_post_meta( $post_id, '_dgr_unit_price_total', true ) );
+		$old_price_m2    = floatval( get_post_meta( $post_id, '_dgr_unit_price_m2', true ) );
+
+		if ( abs( $old_price_total - $new_price_total ) > 0.001 || abs( $old_price_m2 - $new_price_m2 ) > 0.001 ) {
 			$this->update_history( $post_id, $new_price_total, $new_price_m2 );
 		}
 	}
@@ -41,14 +45,13 @@ class DGR_Price_History {
 			$history = array();
 		}
 
-		$today = current_time( 'Y-m-d' );
+		$today = wp_date( 'Y-m-d' );
 
-		// Check if last entry was today
+		// Check if last entry was today - update instead of adding duplicate
 		$last_entry = end( $history );
 		$updated = false;
 
 		if ( $last_entry && isset( $last_entry['date'] ) && $last_entry['date'] === $today ) {
-			// Update today's entry
 			$key = key( $history );
 			$history[ $key ]['price_total'] = $price_total;
 			$history[ $key ]['price_m2']    = $price_m2;
@@ -56,7 +59,6 @@ class DGR_Price_History {
 		}
 
 		if ( ! $updated ) {
-			// Append new entry
 			$history[] = array(
 				'date'        => $today,
 				'price_total' => $price_total,
@@ -73,28 +75,29 @@ class DGR_Price_History {
 			return false;
 		}
 
-		$thirty_days_ago = strtotime( '-30 days' );
-		$current_time    = current_time( 'timestamp' ); // now
+		$thirty_days_ago = strtotime( '-30 days', time() );
 
 		$relevant_prices = array();
 
 		foreach ( $history as $entry ) {
+			if ( ! isset( $entry['date'] ) || ! isset( $entry['price_total'] ) ) {
+				continue;
+			}
 			$entry_time = strtotime( $entry['date'] );
-			// Check if entry is within the last 30 days
-			if ( $entry_time >= $thirty_days_ago && $entry_time <= $current_time ) {
-				if ( isset( $entry['price_total'] ) && $entry['price_total'] > 0 ) {
-					$relevant_prices[] = (float) $entry['price_total'];
+			if ( false === $entry_time ) {
+				continue;
+			}
+			if ( $entry_time >= $thirty_days_ago ) {
+				$price = floatval( $entry['price_total'] );
+				if ( $price > 0 ) {
+					$relevant_prices[] = $price;
 				}
 			}
 		}
 
 		if ( empty( $relevant_prices ) ) {
-			// If no change in last 30 days, current price is technically the lowest in that period (assuming no drops)
-			// But strictly speaking, Omnibus asks for lowest price *before* the reduction.
-			// For this reporter, we just return the min of recorded history in that window.
-			// If array empty, maybe fallback to current price?
-			$current_price = get_post_meta( $post_id, '_dgr_unit_price_total', true );
-			return (float) $current_price;
+			$current_price = floatval( get_post_meta( $post_id, '_dgr_unit_price_total', true ) );
+			return $current_price > 0 ? $current_price : false;
 		}
 
 		return min( $relevant_prices );

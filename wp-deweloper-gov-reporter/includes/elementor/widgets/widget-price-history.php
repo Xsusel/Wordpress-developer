@@ -133,6 +133,7 @@ class DGR_Price_History_Widget extends \Elementor\Widget_Base {
 
 	protected function render() {
 		$settings = $this->get_settings_for_display();
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- shortcode output
 		echo do_shortcode( '[dgr_price_history view="' . esc_attr( $settings['view_type'] ) . '"]' );
 	}
 }

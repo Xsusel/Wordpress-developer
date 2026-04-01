@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 class DGR_Admin_Columns {
 
 	public function init() {
@@ -31,7 +35,11 @@ class DGR_Admin_Columns {
 	}
 
 	public function handle_bulk_actions( $redirect_to, $doaction, $post_ids ) {
-		if ( ! in_array( $doaction, array( 'dgr_mark_sold', 'dgr_mark_reserved', 'dgr_mark_available' ) ) ) {
+		if ( ! in_array( $doaction, array( 'dgr_mark_sold', 'dgr_mark_reserved', 'dgr_mark_available' ), true ) ) {
+			return $redirect_to;
+		}
+
+		if ( ! current_user_can( 'edit_posts' ) ) {
 			return $redirect_to;
 		}
 
@@ -45,8 +53,10 @@ class DGR_Admin_Columns {
 		$changed = 0;
 
 		foreach ( $post_ids as $post_id ) {
-			update_post_meta( $post_id, '_dgr_unit_status', $new_status );
-			$changed++;
+			if ( current_user_can( 'edit_post', $post_id ) ) {
+				update_post_meta( $post_id, '_dgr_unit_status', $new_status );
+				$changed++;
+			}
 		}
 
 		$redirect_to = add_query_arg( 'dgr_bulk_action_done', $changed, $redirect_to );
@@ -57,10 +67,15 @@ class DGR_Admin_Columns {
 	public function bulk_action_admin_notice() {
 		if ( ! empty( $_REQUEST['dgr_bulk_action_done'] ) ) {
 			$count = intval( $_REQUEST['dgr_bulk_action_done'] );
-			$status = sanitize_text_field( $_REQUEST['dgr_action_status'] );
-			printf( '<div id="message" class="updated notice is-dismissible"><p>' .
-				_n( '%s lokal zaktualizowany na status: %s.', '%s lokali zaktualizowanych na status: %s.', $count, 'wp-deweloper-gov-reporter' ) .
-				'</p></div>', $count, $status );
+			$status = isset( $_REQUEST['dgr_action_status'] ) ? sanitize_text_field( $_REQUEST['dgr_action_status'] ) : '';
+			printf(
+				'<div id="message" class="updated notice is-dismissible"><p>%s</p></div>',
+				esc_html( sprintf(
+					_n( '%d lokal zaktualizowany na status: %s.', '%d lokali zaktualizowanych na status: %s.', $count, 'wp-deweloper-gov-reporter' ),
+					$count,
+					$status
+				) )
+			);
 		}
 	}
 
@@ -82,7 +97,7 @@ class DGR_Admin_Columns {
 		switch ( $column ) {
 			case 'dgr_investment':
 				$parent_id = get_post_meta( $post_id, '_dgr_unit_parent_investment', true );
-				echo $parent_id ? get_the_title( $parent_id ) : '-';
+				echo $parent_id ? esc_html( get_the_title( $parent_id ) ) : '-';
 				break;
 			case 'dgr_unit_id':
 				echo esc_html( get_post_meta( $post_id, '_dgr_unit_id', true ) );
@@ -90,7 +105,6 @@ class DGR_Admin_Columns {
 			case 'dgr_status':
 				$status = get_post_meta( $post_id, '_dgr_unit_status', true );
 				$label = ucfirst( $status );
-				// Map status to a safe class name
 				$class_suffix = sanitize_html_class( $status );
 				printf( '<span class="dgr-admin-status-badge status-%s">%s</span>', esc_attr( $class_suffix ), esc_html( $label ) );
 				echo '<input type="hidden" class="dgr_status_hidden_' . esc_attr( $post_id ) . '" value="' . esc_attr( $status ) . '">';
@@ -100,12 +114,12 @@ class DGR_Admin_Columns {
 				break;
 			case 'dgr_price_total':
 				$price = get_post_meta( $post_id, '_dgr_unit_price_total', true );
-				echo $price ? number_format( (float)$price, 2, ',', ' ' ) . ' zł' : '-';
+				echo $price ? esc_html( number_format( (float) $price, 2, ',', ' ' ) . ' zł' ) : '-';
 				echo '<input type="hidden" class="dgr_price_total_hidden_' . esc_attr( $post_id ) . '" value="' . esc_attr( $price ) . '">';
 				break;
 			case 'dgr_price_m2':
 				$price = get_post_meta( $post_id, '_dgr_unit_price_m2', true );
-				echo $price ? number_format( (float)$price, 2, ',', ' ' ) . ' zł' : '-';
+				echo $price ? esc_html( number_format( (float) $price, 2, ',', ' ' ) . ' zł' ) : '-';
 				break;
 		}
 	}
@@ -147,10 +161,10 @@ class DGR_Admin_Columns {
 			'post_status'    => 'publish',
 		) );
 
-		$selected = isset( $_GET['dgr_investment_filter'] ) ? $_GET['dgr_investment_filter'] : '';
+		$selected = isset( $_GET['dgr_investment_filter'] ) ? intval( $_GET['dgr_investment_filter'] ) : '';
 
 		echo '<select name="dgr_investment_filter">';
-		echo '<option value="">' . __( 'Wszystkie Inwestycje', 'wp-deweloper-gov-reporter' ) . '</option>';
+		echo '<option value="">' . esc_html__( 'Wszystkie Inwestycje', 'wp-deweloper-gov-reporter' ) . '</option>';
 		foreach ( $investments as $inv ) {
 			printf( '<option value="%s" %s>%s</option>', esc_attr( $inv->ID ), selected( $selected, $inv->ID, false ), esc_html( $inv->post_title ) );
 		}
@@ -161,7 +175,7 @@ class DGR_Admin_Columns {
 		global $pagenow;
 		if ( is_admin() && 'edit.php' === $pagenow && isset( $_GET['dgr_investment_filter'] ) && ! empty( $_GET['dgr_investment_filter'] ) ) {
 			$query->set( 'meta_key', '_dgr_unit_parent_investment' );
-			$query->set( 'meta_value', $_GET['dgr_investment_filter'] );
+			$query->set( 'meta_value', intval( $_GET['dgr_investment_filter'] ) );
 		}
 	}
 
@@ -169,35 +183,29 @@ class DGR_Admin_Columns {
 		if ( 'dgr_unit' !== $post_type || 'dgr_price_total' !== $column_name ) {
 			return;
 		}
-		// We use dgr_price_total column to inject our fields via inline-edit JS logic usually,
-		// but since WP Quick Edit is tricky, we'll just add simple fields and rely on save_post hook.
-		// Note: Proper Quick Edit requires JS to populate fields from existing values.
-		// For MVP, we'll skip JS population (users must re-enter or it will be empty) or use a hidden span trick if time permits.
-		// Let's add the HTML structure first.
 		?>
 		<fieldset class="inline-edit-col-right inline-edit-dgr-unit">
 			<div class="inline-edit-col">
 				<label>
-					<span class="title"><?php _e( 'Cena Całkowita', 'wp-deweloper-gov-reporter' ); ?></span>
+					<span class="title"><?php esc_html_e( 'Cena Całkowita', 'wp-deweloper-gov-reporter' ); ?></span>
 					<span class="input-text-wrap">
 						<input type="text" name="dgr_unit_price_total" class="dgr_unit_price_total" value="">
 					</span>
 				</label>
 				<label>
-					<span class="title"><?php _e( 'Status', 'wp-deweloper-gov-reporter' ); ?></span>
+					<span class="title"><?php esc_html_e( 'Status', 'wp-deweloper-gov-reporter' ); ?></span>
 					<span class="input-text-wrap">
 						<select name="dgr_unit_status" class="dgr_unit_status">
-							<option value="available"><?php _e( 'Dostępny', 'wp-deweloper-gov-reporter' ); ?></option>
-							<option value="offer"><?php _e( 'Oferta specjalna', 'wp-deweloper-gov-reporter' ); ?></option>
-							<option value="reserved"><?php _e( 'Zarezerwowany', 'wp-deweloper-gov-reporter' ); ?></option>
-							<option value="reservation_agreement"><?php _e( 'Umowa rezerwacyjna', 'wp-deweloper-gov-reporter' ); ?></option>
-							<option value="developer_agreement"><?php _e( 'Umowa deweloperska', 'wp-deweloper-gov-reporter' ); ?></option>
-							<option value="sold"><?php _e( 'Sprzedany', 'wp-deweloper-gov-reporter' ); ?></option>
-							<option value="transferred"><?php _e( 'Przekazany', 'wp-deweloper-gov-reporter' ); ?></option>
+							<option value="available"><?php esc_html_e( 'Dostępny', 'wp-deweloper-gov-reporter' ); ?></option>
+							<option value="offer"><?php esc_html_e( 'Oferta specjalna', 'wp-deweloper-gov-reporter' ); ?></option>
+							<option value="reserved"><?php esc_html_e( 'Zarezerwowany', 'wp-deweloper-gov-reporter' ); ?></option>
+							<option value="reservation_agreement"><?php esc_html_e( 'Umowa rezerwacyjna', 'wp-deweloper-gov-reporter' ); ?></option>
+							<option value="developer_agreement"><?php esc_html_e( 'Umowa deweloperska', 'wp-deweloper-gov-reporter' ); ?></option>
+							<option value="sold"><?php esc_html_e( 'Sprzedany', 'wp-deweloper-gov-reporter' ); ?></option>
+							<option value="transferred"><?php esc_html_e( 'Przekazany', 'wp-deweloper-gov-reporter' ); ?></option>
 						</select>
 					</span>
 				</label>
-				<!-- Nonce for Quick Edit saves is tricky, usually relies on admin-ajax but since save_post triggers on quick edit too, we need the nonce field present -->
 				<?php wp_nonce_field( 'dgr_save_unit_data', 'dgr_unit_nonce' ); ?>
 			</div>
 		</fieldset>
@@ -205,8 +213,8 @@ class DGR_Admin_Columns {
 	}
 
 	public function quick_edit_javascript() {
-		global $current_screen;
-		if ( 'edit-dgr_unit' !== $current_screen->id ) {
+		$screen = get_current_screen();
+		if ( ! $screen || 'edit-dgr_unit' !== $screen->id ) {
 			return;
 		}
 		?>
@@ -222,24 +230,14 @@ class DGR_Admin_Columns {
 					id = this.getId(id);
 				}
 
-				if (this.type == 'dgr_unit') {
-					var row = $('#inline_' + id);
-					var editRow = $('#edit-' + id);
+				var editRow = $('#edit-' + id);
+				var priceTotal = $('.dgr_price_total_hidden_' + id).val();
+				var status = $('.dgr_status_hidden_' + id).val();
 
-					// Get values from hidden inputs in the column (we need to add them first in render_unit_columns)
-					// Alternative: Fetch raw value via AJAX if not present.
-					// But wait, render_unit_columns just echoes text.
-					// We need to add hidden inputs to render_unit_columns to make this work reliably.
-
-					// For now, let's grab the text content and try to parse, OR just leave fields empty but ONLY save if they are not empty.
-					// But DGR_Metaboxes::save_meta_boxes saves if isset($_POST['field']).
-					// So if we leave them empty, empty string is saved.
-
-					// FIX: We must populate the fields. Let's rely on data attributes or hidden inputs we inject now.
-					var priceTotal = $('.dgr_price_total_hidden_' + id).val();
-					var status = $('.dgr_status_hidden_' + id).val();
-
+				if (priceTotal) {
 					editRow.find('input[name="dgr_unit_price_total"]').val(priceTotal);
+				}
+				if (status) {
 					editRow.find('select[name="dgr_unit_status"]').val(status);
 				}
 			};
