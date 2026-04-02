@@ -1,36 +1,414 @@
 /* Admin Styles for WP Deweloper Gov Reporter */
 
-/* Meta Boxes Grid Layout */
-#dgr_unit_details .inside {
+/* =============================================
+   METABOX SECTIONS - Shared Layout
+   ============================================= */
+
+.dgr-metabox-sections {
+    margin: -6px -12px;
+}
+
+.dgr-section {
+    border-bottom: 1px solid #e2e4e7;
+}
+
+.dgr-section:last-child {
+    border-bottom: 0;
+}
+
+.dgr-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 14px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d2327;
+    background: #f6f7f7;
+    border-bottom: 1px solid #e2e4e7;
+    cursor: default;
+}
+
+.dgr-section-title .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #0073aa;
+}
+
+.dgr-section-content {
+    padding: 16px;
+}
+
+/* =============================================
+   GRID LAYOUTS
+   ============================================= */
+
+.dgr-grid-2 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
+    gap: 16px;
 }
 
-#dgr_unit_details .inside p {
-    margin: 0;
+.dgr-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
 }
 
-#dgr_unit_details .inside p:has(textarea) {
-    grid-column: span 2;
+.dgr-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
 }
 
-#dgr_unit_details .inside label {
+.dgr-grid-2 + .dgr-grid-2,
+.dgr-grid-2 + .dgr-grid-3,
+.dgr-grid-3 + .dgr-grid-2,
+.dgr-grid-3 + .dgr-grid-3,
+.dgr-grid-4 + .dgr-grid-4,
+.dgr-grid-4 + .dgr-grid-2,
+.dgr-grid-2 + .dgr-grid-4 {
+    margin-top: 16px;
+}
+
+.dgr-field-full {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 782px) {
+    .dgr-grid-2,
+    .dgr-grid-3,
+    .dgr-grid-4 {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 783px) and (max-width: 1100px) {
+    .dgr-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* =============================================
+   FORM FIELDS
+   ============================================= */
+
+.dgr-field label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
     font-weight: 600;
+    font-size: 12px;
+    color: #50575e;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
-#dgr_unit_details .inside input,
-#dgr_unit_details .inside select {
+.dgr-field label .required {
+    color: #d63638;
+    font-weight: 700;
+}
+
+.dgr-field input[type="text"],
+.dgr-field input[type="number"],
+.dgr-field input[type="date"],
+.dgr-field input[type="url"],
+.dgr-field select,
+.dgr-field textarea {
     width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #1d2327;
+    background: #fff;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-#dgr_unit_details .inside .required {
-    color: #dc3232;
+.dgr-field input:focus,
+.dgr-field select:focus,
+.dgr-field textarea:focus {
+    border-color: #0073aa;
+    box-shadow: 0 0 0 1px #0073aa;
+    outline: none;
 }
 
-/* Dashboard Widget */
+.dgr-field input::placeholder {
+    color: #a7aaad;
+}
+
+.dgr-field-hint {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #757575;
+    font-style: italic;
+}
+
+/* Input with suffix (PLN, m², etc.) */
+.dgr-input-with-suffix {
+    display: flex;
+    align-items: stretch;
+}
+
+.dgr-input-with-suffix input {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    flex: 1;
+}
+
+.dgr-input-with-suffix .dgr-suffix {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    background: #f0f0f1;
+    border: 1px solid #c3c4c7;
+    border-left: 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 12px;
+    color: #50575e;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* =============================================
+   STATUS SELECTOR (Radio Cards)
+   ============================================= */
+
+.dgr-status-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.dgr-status-option {
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+
+.dgr-status-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.dgr-status-card {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 2px solid #dcdcde;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #50575e;
+    background: #fff;
+    transition: all 0.15s ease;
+}
+
+.dgr-status-card .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--status-color);
+}
+
+.dgr-status-option:hover .dgr-status-card {
+    border-color: var(--status-color);
+    background: #fafafa;
+}
+
+.dgr-status-option.active .dgr-status-card,
+.dgr-status-option input:checked + .dgr-status-card {
+    border-color: var(--status-color);
+    background: color-mix(in srgb, var(--status-color) 8%, white);
+    color: #1d2327;
+    box-shadow: 0 0 0 1px var(--status-color);
+}
+
+/* =============================================
+   DEPENDENCIES EDITOR
+   ============================================= */
+
+.dgr-deps-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+}
+
+.dgr-deps-table thead th {
+    text-align: left;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #50575e;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border-bottom: 2px solid #c3c4c7;
+}
+
+.dgr-deps-table thead th:last-child {
+    width: 48px;
+}
+
+.dgr-dep-row td {
+    padding: 6px 10px 6px 0;
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.dgr-dep-row td:first-child {
+    padding-left: 10px;
+}
+
+.dgr-dep-row td:last-child {
+    padding-right: 10px;
+    text-align: center;
+}
+
+.dgr-dep-row select,
+.dgr-dep-row input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.dgr-dep-remove {
+    padding: 4px 6px !important;
+    min-height: 28px !important;
+    line-height: 1 !important;
+    color: #a00 !important;
+    border-color: #dcdcde !important;
+}
+
+.dgr-dep-remove:hover {
+    color: #dc3232 !important;
+    border-color: #dc3232 !important;
+}
+
+.dgr-dep-remove .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.dgr-dep-add {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+}
+
+.dgr-dep-add .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+/* =============================================
+   INVESTMENT STATS SIDEBAR
+   ============================================= */
+
+.dgr-stats-panel {
+    padding: 4px 0;
+}
+
+.dgr-stats-empty {
+    color: #757575;
+    font-style: italic;
+    text-align: center;
+    padding: 10px 0;
+}
+
+.dgr-stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.dgr-stat-row:last-of-type {
+    border-bottom: 0;
+}
+
+.dgr-stat-label {
+    font-size: 13px;
+    color: #50575e;
+}
+
+.dgr-stat-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1d2327;
+}
+
+.dgr-stat-available .dgr-stat-label::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #46b450;
+    margin-right: 6px;
+}
+
+.dgr-stat-reserved .dgr-stat-label::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #f0b849;
+    margin-right: 6px;
+}
+
+.dgr-stat-sold .dgr-stat-label::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #dc3232;
+    margin-right: 6px;
+}
+
+.dgr-stat-total-value {
+    margin-top: 4px;
+    padding-top: 12px;
+    border-top: 2px solid #e2e4e7;
+}
+
+.dgr-stat-total-value .dgr-stat-value {
+    font-size: 13px;
+    color: #0073aa;
+}
+
+/* Stats progress bar */
+.dgr-stat-bar {
+    display: flex;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #f0f0f1;
+    margin-top: 12px;
+}
+
+.dgr-bar-segment {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.dgr-bar-available { background: #46b450; }
+.dgr-bar-reserved { background: #f0b849; }
+.dgr-bar-sold { background: #dc3232; }
+
+/* =============================================
+   DASHBOARD WIDGET
+   ============================================= */
+
 #dgr_dashboard_overview .main {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -59,7 +437,10 @@
     border-radius: 4px;
 }
 
-/* Admin Column Status Badges */
+/* =============================================
+   ADMIN COLUMN STATUS BADGES
+   ============================================= */
+
 .dgr-admin-status-badge {
     display: inline-block;
     padding: 3px 8px;
@@ -77,7 +458,10 @@
 .dgr-admin-status-badge.status-sold { background-color: #f8d7da; color: #721c24; }
 .dgr-admin-status-badge.status-transferred { background-color: #e2e3e5; color: #383d41; }
 
-/* Status Panel on Settings Page */
+/* =============================================
+   SETTINGS PAGE
+   ============================================= */
+
 .dgr-status-panel {
     background: #fff;
     border: 1px solid #ccd0d4;
@@ -99,7 +483,7 @@
     flex-wrap: wrap;
 }
 
-.dgr-status-card {
+.dgr-status-grid > .dgr-status-card {
     background: #f8f8f8;
     border: 1px solid #e5e5e5;
     border-radius: 4px;
@@ -108,11 +492,11 @@
     min-width: 200px;
 }
 
-.dgr-status-card.dgr-status-ok {
+.dgr-status-grid > .dgr-status-card.dgr-status-ok {
     border-left: 3px solid #46b450;
 }
 
-.dgr-status-card.dgr-status-error {
+.dgr-status-grid > .dgr-status-card.dgr-status-error {
     border-left: 3px solid #dc3232;
 }
 
@@ -175,4 +559,27 @@
 
 .dgr-info-box li {
     margin-bottom: 5px;
+}
+
+/* =============================================
+   NIP LOOKUP BUTTON (injected by JS)
+   ============================================= */
+
+.dgr-nip-lookup-btn {
+    margin-top: 6px !important;
+}
+
+.dgr-nip-status {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+}
+
+/* =============================================
+   AUTO-CALC HIGHLIGHT
+   ============================================= */
+
+.dgr-auto-calculated {
+    background-color: #f0f6fc !important;
+    border-color: #72aee6 !important;
 }

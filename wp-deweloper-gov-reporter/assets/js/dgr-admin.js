@@ -1,23 +1,21 @@
 /**
- * DGR Admin JS - NIP lookup and auto-fill
+ * DGR Admin JS - NIP lookup, auto-calculations, dependencies editor, status selector
  */
 jQuery(document).ready(function($) {
 
-    /**
-     * NIP Lookup via AJAX using Biała Lista VAT API (Ministry of Finance)
-     * Works on both: Investment metabox and Settings page
-     */
+    /* =========================================
+       NIP LOOKUP (Biała Lista VAT API)
+       ========================================= */
+
     function initNipLookup(nipInputSelector, opts) {
         var $nipInput = $(nipInputSelector);
         if (!$nipInput.length) return;
 
-        // Add lookup button next to NIP field
         var $wrapper = $nipInput.parent();
-        var $btn = $('<button type="button" class="button dgr-nip-lookup-btn" style="margin-left: 8px; vertical-align: middle;">' + dgr_admin.i18n.lookup + '</button>');
-        var $status = $('<span class="dgr-nip-status" style="margin-left: 8px; font-style: italic;"></span>');
+        var $btn = $('<button type="button" class="button dgr-nip-lookup-btn">' + dgr_admin.i18n.lookup + '</button>');
+        var $status = $('<span class="dgr-nip-status"></span>');
         $nipInput.after($status).after($btn);
 
-        // Lookup on button click
         $btn.on('click', function(e) {
             e.preventDefault();
             var nip = $nipInput.val().replace(/[\s\-]/g, '');
@@ -42,35 +40,28 @@ jQuery(document).ready(function($) {
                     if (response.success && response.data) {
                         var data = response.data;
 
-                        // Fill name field
                         if (opts.nameField && data.name) {
-                            $(opts.nameField).val(data.name);
-                            $(opts.nameField).css('background-color', '#eaffea').delay(1500).queue(function(next) {
+                            $(opts.nameField).val(data.name).css('background-color', '#eaffea').delay(1500).queue(function(next) {
                                 $(this).css('background-color', '');
                                 next();
                             });
                         }
 
-                        // Fill address field
                         if (opts.addressField && data.address) {
-                            $(opts.addressField).val(data.address);
-                            $(opts.addressField).css('background-color', '#eaffea').delay(1500).queue(function(next) {
+                            $(opts.addressField).val(data.address).css('background-color', '#eaffea').delay(1500).queue(function(next) {
                                 $(this).css('background-color', '');
                                 next();
                             });
                         }
 
-                        // Fill KRS if available
                         if (opts.krsField && data.krs) {
                             $(opts.krsField).val(data.krs);
                         }
 
-                        // Fill REGON if available
                         if (opts.regonField && data.regon) {
                             $(opts.regonField).val(data.regon);
                         }
 
-                        // Show VAT status
                         var statusText = data.name;
                         if (data.status_vat) {
                             statusText += ' (VAT: ' + data.status_vat + ')';
@@ -91,7 +82,6 @@ jQuery(document).ready(function($) {
             });
         });
 
-        // Auto-lookup on blur if field has 10 digits and name field is empty
         $nipInput.on('blur', function() {
             var nip = $(this).val().replace(/[\s\-]/g, '');
             if (/^\d{10}$/.test(nip) && opts.nameField && !$(opts.nameField).val()) {
@@ -100,18 +90,15 @@ jQuery(document).ready(function($) {
         });
     }
 
-    // --- Investment Metabox ---
-    initNipLookup('#dgr_investment_nip', {
-        nameField: null,  // Investment title is the WP post title, handled separately
-        addressField: '#dgr_investment_address'
-    });
-
-    // Also fill the post title if it's empty (for new investments)
-    // The investment name should come from the company name
+    // --- Investment Metabox NIP Lookup ---
     var $invNipInput = $('#dgr_investment_nip');
     if ($invNipInput.length) {
+        initNipLookup('#dgr_investment_nip', {
+            nameField: null,
+            addressField: '#dgr_investment_address'
+        });
+
         var origBtn = $invNipInput.siblings('.dgr-nip-lookup-btn');
-        // Override: also fill post title
         origBtn.off('click').on('click', function(e) {
             e.preventDefault();
             var nip = $invNipInput.val().replace(/[\s\-]/g, '');
@@ -136,9 +123,10 @@ jQuery(document).ready(function($) {
                     if (response.success && response.data) {
                         var data = response.data;
 
-                        // Fill address
                         if (data.address) {
-                            $('#dgr_investment_address').val(data.address).css('background-color', '#eaffea').delay(1500).queue(function(next) {
+                            // Try to parse address into parts
+                            var address = data.address;
+                            $('#dgr_investment_address').val(address).css('background-color', '#eaffea').delay(1500).queue(function(next) {
                                 $(this).css('background-color', '');
                                 next();
                             });
@@ -173,7 +161,6 @@ jQuery(document).ready(function($) {
             });
         });
 
-        // Auto-lookup on blur for investment NIP
         $invNipInput.on('blur', function() {
             var nip = $(this).val().replace(/[\s\-]/g, '');
             var $title = $('#title');
@@ -183,9 +170,123 @@ jQuery(document).ready(function($) {
         });
     }
 
-    // --- Settings Page ---
+    // --- Settings Page NIP Lookup ---
     initNipLookup('input[name="dgr_developer_nip"]', {
         nameField: 'input[name="dgr_developer_name"]',
         addressField: null
     });
+
+
+    /* =========================================
+       UNIT: AUTO-CALCULATE PRICE PER M²
+       ========================================= */
+
+    var $priceTotal = $('#dgr_unit_price_total');
+    var $priceM2 = $('#dgr_unit_price_m2');
+    var $area = $('#dgr_unit_area');
+
+    if ($priceTotal.length && $priceM2.length && $area.length) {
+        function autoCalcPriceM2() {
+            var total = parseFloat($priceTotal.val());
+            var areaVal = parseFloat($area.val());
+
+            if (total > 0 && areaVal > 0) {
+                var calculated = Math.round((total / areaVal) * 100) / 100;
+                $priceM2.val(calculated);
+                $priceM2.addClass('dgr-auto-calculated');
+                $('.dgr-auto-calc-hint').show();
+            }
+        }
+
+        // Auto-calc when price or area changes, but only if price/m2 is empty or was auto-calculated
+        $priceTotal.on('input', function() {
+            if (!$priceM2.val() || $priceM2.hasClass('dgr-auto-calculated')) {
+                autoCalcPriceM2();
+            }
+        });
+
+        $area.on('input', function() {
+            if (!$priceM2.val() || $priceM2.hasClass('dgr-auto-calculated')) {
+                autoCalcPriceM2();
+            }
+        });
+
+        // If user manually edits price/m², remove auto-calc class
+        $priceM2.on('input', function() {
+            $priceM2.removeClass('dgr-auto-calculated');
+            $('.dgr-auto-calc-hint').hide();
+        });
+    }
+
+
+    /* =========================================
+       UNIT: STATUS SELECTOR (Radio Cards)
+       ========================================= */
+
+    $('.dgr-status-option input[type="radio"]').on('change', function() {
+        var $parent = $(this).closest('.dgr-status-selector');
+        $parent.find('.dgr-status-option').removeClass('active');
+        $(this).closest('.dgr-status-option').addClass('active');
+    });
+
+
+    /* =========================================
+       UNIT: VISUAL DEPENDENCIES EDITOR
+       ========================================= */
+
+    var $depsBody = $('#dgr-deps-body');
+    var $depsHidden = $('#dgr_unit_dependencies');
+
+    if ($depsBody.length) {
+        var depRowTemplate =
+            '<tr class="dgr-dep-row">' +
+                '<td>' +
+                    '<select class="dgr-dep-type">' +
+                        '<option value="miejsce_postojowe">' + dgr_admin.i18n.dep_parking + '</option>' +
+                        '<option value="komorka_lokatorska">' + dgr_admin.i18n.dep_storage + '</option>' +
+                        '<option value="garaz">' + dgr_admin.i18n.dep_garage + '</option>' +
+                        '<option value="rowerownia">' + dgr_admin.i18n.dep_bike + '</option>' +
+                        '<option value="inne">' + dgr_admin.i18n.dep_other + '</option>' +
+                    '</select>' +
+                '</td>' +
+                '<td><input type="number" step="0.01" min="0" class="dgr-dep-price" value=""></td>' +
+                '<td><button type="button" class="button dgr-dep-remove" title="' + dgr_admin.i18n.dep_remove + '"><span class="dashicons dashicons-trash"></span></button></td>' +
+            '</tr>';
+
+        // Add row
+        $('#dgr-dep-add').on('click', function() {
+            $depsBody.append(depRowTemplate);
+            updateDepsJSON();
+        });
+
+        // Remove row
+        $depsBody.on('click', '.dgr-dep-remove', function() {
+            $(this).closest('.dgr-dep-row').remove();
+            updateDepsJSON();
+        });
+
+        // Update hidden field on any change
+        $depsBody.on('change input', '.dgr-dep-type, .dgr-dep-price', function() {
+            updateDepsJSON();
+        });
+
+        function updateDepsJSON() {
+            var deps = [];
+            $depsBody.find('.dgr-dep-row').each(function() {
+                var typ = $(this).find('.dgr-dep-type').val();
+                var cena = parseFloat($(this).find('.dgr-dep-price').val());
+
+                if (typ) {
+                    var dep = { typ: typ };
+                    if (!isNaN(cena) && cena > 0) {
+                        dep.cena = cena;
+                    }
+                    deps.push(dep);
+                }
+            });
+
+            $depsHidden.val(deps.length > 0 ? JSON.stringify(deps) : '');
+        }
+    }
+
 });

@@ -26,25 +26,24 @@ class DGR_Admin {
 	}
 
 	public function enqueue_admin_assets( $hook ) {
-		wp_enqueue_style( 'dgr-admin-css', plugins_url( '../assets/css/dgr-admin.css', __FILE__ ), array(), '1.2.0' );
+		wp_enqueue_style( 'dgr-admin-css', plugins_url( '../assets/css/dgr-admin.css', __FILE__ ), array(), '1.3.0' );
 
-		// Load NIP lookup JS only on relevant pages (investment edit, settings)
 		$screen = get_current_screen();
-		$load_nip_js = false;
+		$load_js = false;
 
 		if ( $screen ) {
-			// Investment edit screen
-			if ( 'dgr_investment' === $screen->post_type && in_array( $screen->base, array( 'post', 'post-new' ), true ) ) {
-				$load_nip_js = true;
+			// Investment or Unit edit screen
+			if ( in_array( $screen->post_type, array( 'dgr_investment', 'dgr_unit' ), true ) && in_array( $screen->base, array( 'post', 'post-new' ), true ) ) {
+				$load_js = true;
 			}
 			// Plugin settings page
 			if ( 'toplevel_page_wp-deweloper-gov-reporter' === $screen->id ) {
-				$load_nip_js = true;
+				$load_js = true;
 			}
 		}
 
-		if ( $load_nip_js ) {
-			wp_enqueue_script( 'dgr-admin-js', plugins_url( '../assets/js/dgr-admin.js', __FILE__ ), array( 'jquery' ), '1.2.0', true );
+		if ( $load_js ) {
+			wp_enqueue_script( 'dgr-admin-js', plugins_url( '../assets/js/dgr-admin.js', __FILE__ ), array( 'jquery' ), '1.3.0', true );
 			wp_localize_script( 'dgr-admin-js', 'dgr_admin', array(
 				'ajaxurl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'dgr_nip_lookup' ),
@@ -54,6 +53,12 @@ class DGR_Admin {
 					'not_found'   => __( 'Nie znaleziono firmy o podanym NIP.', 'wp-deweloper-gov-reporter' ),
 					'invalid_nip' => __( 'NIP musi mieć 10 cyfr.', 'wp-deweloper-gov-reporter' ),
 					'error'       => __( 'Błąd połączenia z serwerem.', 'wp-deweloper-gov-reporter' ),
+					'dep_parking' => __( 'Miejsce postojowe', 'wp-deweloper-gov-reporter' ),
+					'dep_storage' => __( 'Komórka lokatorska', 'wp-deweloper-gov-reporter' ),
+					'dep_garage'  => __( 'Garaż', 'wp-deweloper-gov-reporter' ),
+					'dep_bike'    => __( 'Rowerownia', 'wp-deweloper-gov-reporter' ),
+					'dep_other'   => __( 'Inne', 'wp-deweloper-gov-reporter' ),
+					'dep_remove'  => __( 'Usuń', 'wp-deweloper-gov-reporter' ),
 				),
 			) );
 		}

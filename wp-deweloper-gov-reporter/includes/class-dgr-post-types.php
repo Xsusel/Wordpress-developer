@@ -29,7 +29,7 @@ class DGR_Post_Types {
 			'label'                 => __( 'Inwestycja', 'wp-deweloper-gov-reporter' ),
 			'description'           => __( 'Inwestycje deweloperskie', 'wp-deweloper-gov-reporter' ),
 			'labels'                => $labels_investment,
-			'supports'              => array( 'title', 'editor' ),
+			'supports'              => array( 'title', 'editor', 'thumbnail' ),
 			'hierarchical'          => false,
 			'public'                => true,
 			'show_ui'               => true,
