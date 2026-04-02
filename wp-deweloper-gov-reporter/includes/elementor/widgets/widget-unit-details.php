@@ -197,19 +197,11 @@ class DGR_Unit_Details_Widget extends \Elementor\Widget_Base {
 	protected function render() {
 		$settings = $this->get_settings_for_display();
 
-		// Construct shortcode with attributes
+		$fields = array( 'show_investment', 'show_unit_id', 'show_area', 'show_rooms', 'show_floor', 'show_status', 'show_price_total', 'show_price_m2', 'show_omnibus' );
 		$shortcode = '[dgr_unit_details';
-
-		$shortcode .= ' show_investment="' . $settings['show_investment'] . '"';
-		$shortcode .= ' show_unit_id="' . $settings['show_unit_id'] . '"';
-		$shortcode .= ' show_area="' . $settings['show_area'] . '"';
-		$shortcode .= ' show_rooms="' . $settings['show_rooms'] . '"';
-		$shortcode .= ' show_floor="' . $settings['show_floor'] . '"';
-		$shortcode .= ' show_status="' . $settings['show_status'] . '"';
-		$shortcode .= ' show_price_total="' . $settings['show_price_total'] . '"';
-		$shortcode .= ' show_price_m2="' . $settings['show_price_m2'] . '"';
-		$shortcode .= ' show_omnibus="' . $settings['show_omnibus'] . '"';
-
+		foreach ( $fields as $field ) {
+			$shortcode .= ' ' . $field . '="' . esc_attr( $settings[ $field ] ) . '"';
+		}
 		$shortcode .= ']';
 
 		echo do_shortcode( $shortcode );

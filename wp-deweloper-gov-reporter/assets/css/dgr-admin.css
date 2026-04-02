@@ -26,6 +26,10 @@
     width: 100%;
 }
 
+#dgr_unit_details .inside .required {
+    color: #dc3232;
+}
+
 /* Dashboard Widget */
 #dgr_dashboard_overview .main {
     display: grid;
@@ -72,3 +76,103 @@
 .dgr-admin-status-badge.status-developer_agreement { background-color: #f5c6cb; color: #721c24; }
 .dgr-admin-status-badge.status-sold { background-color: #f8d7da; color: #721c24; }
 .dgr-admin-status-badge.status-transferred { background-color: #e2e3e5; color: #383d41; }
+
+/* Status Panel on Settings Page */
+.dgr-status-panel {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-left: 4px solid #0073aa;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 4px;
+}
+
+.dgr-status-panel h2 {
+    margin-top: 0;
+    font-size: 1.3em;
+}
+
+.dgr-status-grid {
+    display: flex;
+    gap: 20px;
+    margin: 15px 0;
+    flex-wrap: wrap;
+}
+
+.dgr-status-card {
+    background: #f8f8f8;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    padding: 15px;
+    flex: 1;
+    min-width: 200px;
+}
+
+.dgr-status-card.dgr-status-ok {
+    border-left: 3px solid #46b450;
+}
+
+.dgr-status-card.dgr-status-error {
+    border-left: 3px solid #dc3232;
+}
+
+.dgr-badge-ok {
+    display: inline-block;
+    background: #d4edda;
+    color: #155724;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.dgr-badge-error {
+    display: inline-block;
+    background: #f8d7da;
+    color: #721c24;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.dgr-urls-box {
+    background: #f0f6fc;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.dgr-urls-box h3 {
+    margin-top: 0;
+}
+
+.dgr-urls-box code {
+    background: #fff;
+    padding: 4px 8px;
+    font-size: 13px;
+    word-break: break-all;
+}
+
+/* Info Box */
+.dgr-info-box {
+    background: #fef8e7;
+    border: 1px solid #f0c36d;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 20px 0;
+}
+
+.dgr-info-box h2 {
+    margin-top: 0;
+    font-size: 1.1em;
+}
+
+.dgr-info-box ol {
+    margin: 10px 0 0 20px;
+}
+
+.dgr-info-box li {
+    margin-bottom: 5px;
+}
