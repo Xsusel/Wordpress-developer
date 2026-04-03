@@ -18,6 +18,9 @@ class DGR_Public {
 		add_shortcode( 'dgr_price_history', array( $this, 'render_price_history' ) );
 		add_shortcode( 'dgr_unit_details', array( $this, 'render_unit_details' ) );
 		add_shortcode( 'dgr_unit_list', array( $this, 'render_unit_list' ) );
+		add_shortcode( 'dgr_lokal_karta', array( $this, 'render_lokal_karta' ) );
+		add_shortcode( 'dgr_lokal_cena', array( $this, 'render_lokal_cena' ) );
+		add_shortcode( 'dgr_lokal_metraz', array( $this, 'render_lokal_metraz' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'wp_ajax_dgr_filter_units', array( $this, 'ajax_filter_units' ) );
 		add_action( 'wp_ajax_nopriv_dgr_filter_units', array( $this, 'ajax_filter_units' ) );
@@ -452,5 +455,163 @@ class DGR_Public {
 		?>
 		<?php
 		return ob_get_clean();
+	}
+
+	/**
+	 * Helper: format price for display.
+	 */
+	private function format_price( $value ) {
+		$value = floatval( $value );
+		if ( $value <= 0 ) {
+			return '';
+		}
+		return number_format( $value, 0, ',', ' ' ) . ' zł';
+	}
+
+	/**
+	 * Shortcode [dgr_lokal_karta id="123"]
+	 *
+	 * Renders a property pricing card with location, area, and prices
+	 * (shell/developer, netto/brutto) - designed for Elementor or classic editor.
+	 */
+	public function render_lokal_karta( $atts ) {
+		wp_enqueue_style( 'dgr-frontend-css' );
+
+		$atts = shortcode_atts( array(
+			'id'         => get_the_ID(),
+			'show_netto' => 'yes',
+		), $atts, 'dgr_lokal_karta' );
+
+		$post_id = intval( $atts['id'] );
+
+		if ( get_post_type( $post_id ) !== 'dgr_unit' ) {
+			return '';
+		}
+
+		$meta = get_post_meta( $post_id );
+
+		$location = isset( $meta['_dgr_unit_location_label'][0] ) ? $meta['_dgr_unit_location_label'][0] : '';
+		$area     = isset( $meta['_dgr_unit_area'][0] ) ? floatval( $meta['_dgr_unit_area'][0] ) : 0;
+
+		$price_shell_netto      = isset( $meta['_dgr_unit_price_shell_netto'][0] ) ? floatval( $meta['_dgr_unit_price_shell_netto'][0] ) : 0;
+		$price_shell_brutto     = isset( $meta['_dgr_unit_price_shell_brutto'][0] ) ? floatval( $meta['_dgr_unit_price_shell_brutto'][0] ) : 0;
+		$price_developer_netto  = isset( $meta['_dgr_unit_price_developer_netto'][0] ) ? floatval( $meta['_dgr_unit_price_developer_netto'][0] ) : 0;
+		$price_developer_brutto = isset( $meta['_dgr_unit_price_developer_brutto'][0] ) ? floatval( $meta['_dgr_unit_price_developer_brutto'][0] ) : 0;
+
+		$show_netto = ( $atts['show_netto'] === 'yes' );
+
+		ob_start();
+		?>
+		<div class="dgr-lokal-karta">
+			<div class="dgr-lokal-karta__header">
+				<?php if ( $location ) : ?>
+					<span class="dgr-lokal-karta__location">
+						<svg class="dgr-lokal-karta__icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+						<?php echo esc_html( $location ); ?>
+					</span>
+				<?php endif; ?>
+				<?php if ( $area > 0 ) : ?>
+					<span class="dgr-lokal-karta__area">
+						<svg class="dgr-lokal-karta__icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 12h-2v3h-3v2h5v-5zM7 9h3V7H5v5h2V9zm14-6H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16.01H3V4.99h18v14.02z"/></svg>
+						<?php echo esc_html( number_format( $area, 2, ',', ' ' ) ); ?> m&sup2;
+					</span>
+				<?php endif; ?>
+			</div>
+
+			<div class="dgr-lokal-karta__prices">
+				<?php if ( $price_shell_brutto > 0 ) : ?>
+					<div class="dgr-lokal-karta__price-block">
+						<span class="dgr-lokal-karta__price-label"><?php esc_html_e( 'Stan surowy zamknięty', 'wp-deweloper-gov-reporter' ); ?></span>
+						<span class="dgr-lokal-karta__price-value"><?php echo esc_html( $this->format_price( $price_shell_brutto ) ); ?></span>
+						<?php if ( $show_netto && $price_shell_netto > 0 ) : ?>
+							<span class="dgr-lokal-karta__price-netto"><?php echo esc_html( sprintf( __( 'netto: %s', 'wp-deweloper-gov-reporter' ), $this->format_price( $price_shell_netto ) ) ); ?></span>
+						<?php endif; ?>
+					</div>
+				<?php endif; ?>
+
+				<?php if ( $price_developer_brutto > 0 ) : ?>
+					<div class="dgr-lokal-karta__price-block">
+						<span class="dgr-lokal-karta__price-label"><?php esc_html_e( 'Deweloperski', 'wp-deweloper-gov-reporter' ); ?></span>
+						<span class="dgr-lokal-karta__price-value"><?php echo esc_html( $this->format_price( $price_developer_brutto ) ); ?></span>
+						<?php if ( $show_netto && $price_developer_netto > 0 ) : ?>
+							<span class="dgr-lokal-karta__price-netto"><?php echo esc_html( sprintf( __( 'netto: %s', 'wp-deweloper-gov-reporter' ), $this->format_price( $price_developer_netto ) ) ); ?></span>
+						<?php endif; ?>
+					</div>
+				<?php endif; ?>
+			</div>
+		</div>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * Shortcode [dgr_lokal_cena id="123" typ="deweloperski" vat="brutto"]
+	 *
+	 * Returns a single formatted price value - useful for inline use in Elementor text widgets.
+	 * typ: "surowy" | "deweloperski"
+	 * vat: "netto" | "brutto"
+	 */
+	public function render_lokal_cena( $atts ) {
+		$atts = shortcode_atts( array(
+			'id'  => get_the_ID(),
+			'typ' => 'deweloperski',
+			'vat' => 'brutto',
+		), $atts, 'dgr_lokal_cena' );
+
+		$post_id = intval( $atts['id'] );
+
+		if ( get_post_type( $post_id ) !== 'dgr_unit' ) {
+			return '';
+		}
+
+		$typ = sanitize_key( $atts['typ'] );
+		$vat = sanitize_key( $atts['vat'] );
+
+		$meta_key_map = array(
+			'surowy_netto'        => '_dgr_unit_price_shell_netto',
+			'surowy_brutto'       => '_dgr_unit_price_shell_brutto',
+			'deweloperski_netto'  => '_dgr_unit_price_developer_netto',
+			'deweloperski_brutto' => '_dgr_unit_price_developer_brutto',
+		);
+
+		$key = $typ . '_' . $vat;
+		if ( ! isset( $meta_key_map[ $key ] ) ) {
+			return '';
+		}
+
+		$value = get_post_meta( $post_id, $meta_key_map[ $key ], true );
+		$formatted = $this->format_price( $value );
+
+		if ( empty( $formatted ) ) {
+			return '-';
+		}
+
+		return '<span class="dgr-lokal-cena">' . esc_html( $formatted ) . '</span>';
+	}
+
+	/**
+	 * Shortcode [dgr_lokal_metraz id="123"]
+	 *
+	 * Returns the formatted area value.
+	 */
+	public function render_lokal_metraz( $atts ) {
+		$atts = shortcode_atts( array(
+			'id' => get_the_ID(),
+		), $atts, 'dgr_lokal_metraz' );
+
+		$post_id = intval( $atts['id'] );
+
+		if ( get_post_type( $post_id ) !== 'dgr_unit' ) {
+			return '';
+		}
+
+		$area = get_post_meta( $post_id, '_dgr_unit_area', true );
+		$area = floatval( $area );
+
+		if ( $area <= 0 ) {
+			return '-';
+		}
+
+		return '<span class="dgr-lokal-metraz">' . esc_html( number_format( $area, 2, ',', ' ' ) ) . ' m&sup2;</span>';
 	}
 }
