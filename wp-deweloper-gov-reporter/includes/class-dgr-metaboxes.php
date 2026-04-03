@@ -67,6 +67,13 @@ class DGR_Metaboxes {
 		$status            = get_post_meta( $post->ID, '_dgr_unit_status', true );
 		$dependencies      = get_post_meta( $post->ID, '_dgr_unit_dependencies', true );
 
+		// Pricing fields
+		$location_label          = get_post_meta( $post->ID, '_dgr_unit_location_label', true );
+		$price_shell_netto       = get_post_meta( $post->ID, '_dgr_unit_price_shell_netto', true );
+		$price_shell_brutto      = get_post_meta( $post->ID, '_dgr_unit_price_shell_brutto', true );
+		$price_developer_netto   = get_post_meta( $post->ID, '_dgr_unit_price_developer_netto', true );
+		$price_developer_brutto  = get_post_meta( $post->ID, '_dgr_unit_price_developer_brutto', true );
+
 		$investments = get_posts( array(
 			'post_type'      => 'dgr_investment',
 			'posts_per_page' => -1,
@@ -87,13 +94,44 @@ class DGR_Metaboxes {
 			<input type="text" id="dgr_unit_id" name="dgr_unit_id" value="<?php echo esc_attr( $unit_id ); ?>" class="widefat" required>
 		</p>
 		<p>
-			<label for="dgr_unit_price_total"><?php esc_html_e( 'Cena Całkowita (Brutto PLN)', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
+			<label for="dgr_unit_location_label"><?php esc_html_e( 'Lokalizacja (etykieta)', 'wp-deweloper-gov-reporter' ); ?></label>
+			<input type="text" id="dgr_unit_location_label" name="dgr_unit_location_label" value="<?php echo esc_attr( $location_label ); ?>" class="widefat" placeholder="<?php esc_attr_e( 'np. BOLMIN (25 KM OD KIELC)', 'wp-deweloper-gov-reporter' ); ?>">
+		</p>
+
+		<hr>
+		<h4 style="margin-bottom:5px;"><?php esc_html_e( 'Cena Całkowita (raport gov)', 'wp-deweloper-gov-reporter' ); ?></h4>
+		<p>
+			<label for="dgr_unit_price_total"><?php esc_html_e( 'Cena Całkowita Brutto (PLN)', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
 			<input type="number" step="0.01" min="0.01" id="dgr_unit_price_total" name="dgr_unit_price_total" value="<?php echo esc_attr( $price_total ); ?>" class="widefat" required>
 		</p>
 		<p>
-			<label for="dgr_unit_price_m2"><?php esc_html_e( 'Cena za m² (Brutto PLN)', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
+			<label for="dgr_unit_price_m2"><?php esc_html_e( 'Cena za m² Brutto (PLN)', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
 			<input type="number" step="0.01" min="0.01" id="dgr_unit_price_m2" name="dgr_unit_price_m2" value="<?php echo esc_attr( $price_m2 ); ?>" class="widefat" required>
 		</p>
+
+		<hr>
+		<h4 style="margin-bottom:5px;"><?php esc_html_e( 'Cennik - Stan Surowy Zamknięty', 'wp-deweloper-gov-reporter' ); ?></h4>
+		<p>
+			<label for="dgr_unit_price_shell_netto"><?php esc_html_e( 'Cena Netto (PLN)', 'wp-deweloper-gov-reporter' ); ?></label>
+			<input type="number" step="0.01" min="0" id="dgr_unit_price_shell_netto" name="dgr_unit_price_shell_netto" value="<?php echo esc_attr( $price_shell_netto ); ?>" class="widefat">
+		</p>
+		<p>
+			<label for="dgr_unit_price_shell_brutto"><?php esc_html_e( 'Cena Brutto (PLN)', 'wp-deweloper-gov-reporter' ); ?></label>
+			<input type="number" step="0.01" min="0" id="dgr_unit_price_shell_brutto" name="dgr_unit_price_shell_brutto" value="<?php echo esc_attr( $price_shell_brutto ); ?>" class="widefat">
+		</p>
+
+		<hr>
+		<h4 style="margin-bottom:5px;"><?php esc_html_e( 'Cennik - Stan Deweloperski', 'wp-deweloper-gov-reporter' ); ?></h4>
+		<p>
+			<label for="dgr_unit_price_developer_netto"><?php esc_html_e( 'Cena Netto (PLN)', 'wp-deweloper-gov-reporter' ); ?></label>
+			<input type="number" step="0.01" min="0" id="dgr_unit_price_developer_netto" name="dgr_unit_price_developer_netto" value="<?php echo esc_attr( $price_developer_netto ); ?>" class="widefat">
+		</p>
+		<p>
+			<label for="dgr_unit_price_developer_brutto"><?php esc_html_e( 'Cena Brutto (PLN)', 'wp-deweloper-gov-reporter' ); ?></label>
+			<input type="number" step="0.01" min="0" id="dgr_unit_price_developer_brutto" name="dgr_unit_price_developer_brutto" value="<?php echo esc_attr( $price_developer_brutto ); ?>" class="widefat">
+		</p>
+
+		<hr>
 		<p>
 			<label for="dgr_unit_area"><?php esc_html_e( 'Powierzchnia (m²)', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
 			<input type="number" step="0.01" min="0.01" id="dgr_unit_area" name="dgr_unit_area" value="<?php echo esc_attr( $area ); ?>" class="widefat" required>
@@ -123,6 +161,14 @@ class DGR_Metaboxes {
 			<textarea id="dgr_unit_dependencies" name="dgr_unit_dependencies" class="widefat" rows="3"><?php echo esc_textarea( $dependencies ); ?></textarea>
 			<small><?php esc_html_e( 'Format: [{"typ": "miejsce_postojowe", "cena": 45000}, {"typ": "komórka_lokatorska", "cena": 18000}]', 'wp-deweloper-gov-reporter' ); ?></small>
 		</p>
+
+		<hr>
+		<h4><?php esc_html_e( 'Shortcodes dla tego lokalu', 'wp-deweloper-gov-reporter' ); ?></h4>
+		<p><small><?php esc_html_e( 'Skopiuj i wklej na stronę (Elementor lub edytor):', 'wp-deweloper-gov-reporter' ); ?></small></p>
+		<code style="display:block;background:#f1f1f1;padding:8px;margin:4px 0;font-size:12px;">[dgr_lokal_karta id="<?php echo esc_attr( $post->ID ); ?>"]</code>
+		<code style="display:block;background:#f1f1f1;padding:8px;margin:4px 0;font-size:12px;">[dgr_lokal_cena id="<?php echo esc_attr( $post->ID ); ?>" typ="deweloperski" vat="brutto"]</code>
+		<code style="display:block;background:#f1f1f1;padding:8px;margin:4px 0;font-size:12px;">[dgr_lokal_cena id="<?php echo esc_attr( $post->ID ); ?>" typ="surowy" vat="netto"]</code>
+		<code style="display:block;background:#f1f1f1;padding:8px;margin:4px 0;font-size:12px;">[dgr_lokal_metraz id="<?php echo esc_attr( $post->ID ); ?>"]</code>
 		<?php
 	}
 
@@ -146,7 +192,7 @@ class DGR_Metaboxes {
 			if ( ! current_user_can( 'edit_post', $post_id ) ) return;
 
 			// Text fields
-			$text_fields = array( 'dgr_unit_parent_investment', 'dgr_unit_id', 'dgr_unit_status' );
+			$text_fields = array( 'dgr_unit_parent_investment', 'dgr_unit_id', 'dgr_unit_status', 'dgr_unit_location_label' );
 			foreach ( $text_fields as $field ) {
 				if ( isset( $_POST[ $field ] ) ) {
 					update_post_meta( $post_id, '_' . $field, sanitize_text_field( $_POST[ $field ] ) );
@@ -155,11 +201,15 @@ class DGR_Metaboxes {
 
 			// Numeric fields - validate as positive numbers
 			$numeric_fields = array(
-				'dgr_unit_price_total' => 0.01,
-				'dgr_unit_price_m2'    => 0.01,
-				'dgr_unit_area'        => 0.01,
-				'dgr_unit_rooms'       => 1,
-				'dgr_unit_floor'       => 0,
+				'dgr_unit_price_total'           => 0.01,
+				'dgr_unit_price_m2'              => 0.01,
+				'dgr_unit_area'                  => 0.01,
+				'dgr_unit_rooms'                 => 1,
+				'dgr_unit_floor'                 => 0,
+				'dgr_unit_price_shell_netto'     => 0,
+				'dgr_unit_price_shell_brutto'    => 0,
+				'dgr_unit_price_developer_netto' => 0,
+				'dgr_unit_price_developer_brutto'=> 0,
 			);
 
 			foreach ( $numeric_fields as $field => $min ) {
