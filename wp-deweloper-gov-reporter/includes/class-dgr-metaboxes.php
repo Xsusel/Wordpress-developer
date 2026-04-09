@@ -69,6 +69,8 @@ class DGR_Metaboxes {
 
 		// Pricing fields
 		$location_label          = get_post_meta( $post->ID, '_dgr_unit_location_label', true );
+		$vat_rate                = get_post_meta( $post->ID, '_dgr_unit_vat_rate', true );
+		if ( '' === $vat_rate ) $vat_rate = 8;
 		$price_shell_netto       = get_post_meta( $post->ID, '_dgr_unit_price_shell_netto', true );
 		$price_shell_brutto      = get_post_meta( $post->ID, '_dgr_unit_price_shell_brutto', true );
 		$price_developer_netto   = get_post_meta( $post->ID, '_dgr_unit_price_developer_netto', true );
@@ -105,31 +107,50 @@ class DGR_Metaboxes {
 			<input type="number" step="0.01" min="0.01" id="dgr_unit_price_total" name="dgr_unit_price_total" value="<?php echo esc_attr( $price_total ); ?>" class="widefat" required>
 		</p>
 		<p>
-			<label for="dgr_unit_price_m2"><?php esc_html_e( 'Cena za m² Brutto (PLN)', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
-			<input type="number" step="0.01" min="0.01" id="dgr_unit_price_m2" name="dgr_unit_price_m2" value="<?php echo esc_attr( $price_m2 ); ?>" class="widefat" required>
+			<label><?php esc_html_e( 'Cena za m² Brutto (PLN)', 'wp-deweloper-gov-reporter' ); ?> <em style="font-weight:normal;color:#888;"><?php esc_html_e( '— obliczana automatycznie', 'wp-deweloper-gov-reporter' ); ?></em></label>
+			<input type="text" id="dgr_unit_price_m2_display" value="<?php echo $price_m2 ? esc_attr( number_format( floatval( $price_m2 ), 2, ',', ' ' ) . ' zł/m²' ) : '—'; ?>" class="widefat" readonly style="background:#f9f9f9;color:#555;">
+		</p>
+
+		<hr>
+		<h4 style="margin-bottom:5px;"><?php esc_html_e( 'Stawka VAT', 'wp-deweloper-gov-reporter' ); ?></h4>
+		<p>
+			<label for="dgr_unit_vat_rate"><?php esc_html_e( 'VAT (%)', 'wp-deweloper-gov-reporter' ); ?></label>
+			<select id="dgr_unit_vat_rate" name="dgr_unit_vat_rate" style="width:120px;">
+				<option value="8" <?php selected( $vat_rate, 8 ); ?>>8%</option>
+				<option value="23" <?php selected( $vat_rate, 23 ); ?>>23%</option>
+			</select>
+			<small style="color:#888;"><?php esc_html_e( 'Wpisz netto LUB brutto — drugie pole uzupełni się samo.', 'wp-deweloper-gov-reporter' ); ?></small>
 		</p>
 
 		<hr>
 		<h4 style="margin-bottom:5px;"><?php esc_html_e( 'Cennik - Stan Surowy Zamknięty', 'wp-deweloper-gov-reporter' ); ?></h4>
-		<p>
-			<label for="dgr_unit_price_shell_netto"><?php esc_html_e( 'Cena Netto (PLN)', 'wp-deweloper-gov-reporter' ); ?></label>
-			<input type="number" step="0.01" min="0" id="dgr_unit_price_shell_netto" name="dgr_unit_price_shell_netto" value="<?php echo esc_attr( $price_shell_netto ); ?>" class="widefat">
-		</p>
-		<p>
-			<label for="dgr_unit_price_shell_brutto"><?php esc_html_e( 'Cena Brutto (PLN)', 'wp-deweloper-gov-reporter' ); ?></label>
-			<input type="number" step="0.01" min="0" id="dgr_unit_price_shell_brutto" name="dgr_unit_price_shell_brutto" value="<?php echo esc_attr( $price_shell_brutto ); ?>" class="widefat">
-		</p>
+		<div style="display:flex;gap:15px;flex-wrap:wrap;">
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_unit_price_shell_netto"><?php esc_html_e( 'Cena Netto (PLN)', 'wp-deweloper-gov-reporter' ); ?></label>
+				<input type="number" step="0.01" min="0" id="dgr_unit_price_shell_netto" name="dgr_unit_price_shell_netto" value="<?php echo esc_attr( $price_shell_netto ); ?>" class="widefat dgr-vat-netto" data-pair="dgr_unit_price_shell_brutto">
+				<span id="dgr_m2_shell_netto" class="dgr-m2-calc"></span>
+			</p>
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_unit_price_shell_brutto"><?php esc_html_e( 'Cena Brutto (PLN)', 'wp-deweloper-gov-reporter' ); ?></label>
+				<input type="number" step="0.01" min="0" id="dgr_unit_price_shell_brutto" name="dgr_unit_price_shell_brutto" value="<?php echo esc_attr( $price_shell_brutto ); ?>" class="widefat dgr-vat-brutto" data-pair="dgr_unit_price_shell_netto">
+				<span id="dgr_m2_shell_brutto" class="dgr-m2-calc"></span>
+			</p>
+		</div>
 
 		<hr>
 		<h4 style="margin-bottom:5px;"><?php esc_html_e( 'Cennik - Stan Deweloperski', 'wp-deweloper-gov-reporter' ); ?></h4>
-		<p>
-			<label for="dgr_unit_price_developer_netto"><?php esc_html_e( 'Cena Netto (PLN)', 'wp-deweloper-gov-reporter' ); ?></label>
-			<input type="number" step="0.01" min="0" id="dgr_unit_price_developer_netto" name="dgr_unit_price_developer_netto" value="<?php echo esc_attr( $price_developer_netto ); ?>" class="widefat">
-		</p>
-		<p>
-			<label for="dgr_unit_price_developer_brutto"><?php esc_html_e( 'Cena Brutto (PLN)', 'wp-deweloper-gov-reporter' ); ?></label>
-			<input type="number" step="0.01" min="0" id="dgr_unit_price_developer_brutto" name="dgr_unit_price_developer_brutto" value="<?php echo esc_attr( $price_developer_brutto ); ?>" class="widefat">
-		</p>
+		<div style="display:flex;gap:15px;flex-wrap:wrap;">
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_unit_price_developer_netto"><?php esc_html_e( 'Cena Netto (PLN)', 'wp-deweloper-gov-reporter' ); ?></label>
+				<input type="number" step="0.01" min="0" id="dgr_unit_price_developer_netto" name="dgr_unit_price_developer_netto" value="<?php echo esc_attr( $price_developer_netto ); ?>" class="widefat dgr-vat-netto" data-pair="dgr_unit_price_developer_brutto">
+				<span id="dgr_m2_dev_netto" class="dgr-m2-calc"></span>
+			</p>
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_unit_price_developer_brutto"><?php esc_html_e( 'Cena Brutto (PLN)', 'wp-deweloper-gov-reporter' ); ?></label>
+				<input type="number" step="0.01" min="0" id="dgr_unit_price_developer_brutto" name="dgr_unit_price_developer_brutto" value="<?php echo esc_attr( $price_developer_brutto ); ?>" class="widefat dgr-vat-brutto" data-pair="dgr_unit_price_developer_netto">
+				<span id="dgr_m2_dev_brutto" class="dgr-m2-calc"></span>
+			</p>
+		</div>
 
 		<hr>
 		<p>
@@ -169,6 +190,102 @@ class DGR_Metaboxes {
 		<code style="display:block;background:#f1f1f1;padding:8px;margin:4px 0;font-size:12px;">[dgr_lokal_cena id="<?php echo esc_attr( $post->ID ); ?>" typ="deweloperski" vat="brutto"]</code>
 		<code style="display:block;background:#f1f1f1;padding:8px;margin:4px 0;font-size:12px;">[dgr_lokal_cena id="<?php echo esc_attr( $post->ID ); ?>" typ="surowy" vat="netto"]</code>
 		<code style="display:block;background:#f1f1f1;padding:8px;margin:4px 0;font-size:12px;">[dgr_lokal_metraz id="<?php echo esc_attr( $post->ID ); ?>"]</code>
+
+		<style>.dgr-m2-calc{display:block;margin-top:3px;font-size:12px;color:#666;font-style:italic;}</style>
+		<script>
+		(function(){
+			var areaField = document.getElementById('dgr_unit_area');
+			var govPrice = document.getElementById('dgr_unit_price_total');
+			var govDisplay = document.getElementById('dgr_unit_price_m2_display');
+			var vatSelect = document.getElementById('dgr_unit_vat_rate');
+
+			function getVat() { return parseFloat(vatSelect.value) || 8; }
+			function getArea() { return parseFloat(areaField.value) || 0; }
+
+			function fmtM2(v) {
+				return v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ').replace('.', ',') + ' zł/m²';
+			}
+
+			// Netto→Brutto and Brutto→Netto auto-fill
+			function onNetto(e) {
+				var netto = parseFloat(e.target.value) || 0;
+				var pairId = e.target.getAttribute('data-pair');
+				var brutto = document.getElementById(pairId);
+				if (netto > 0) {
+					brutto.value = (netto * (1 + getVat() / 100)).toFixed(2);
+				} else {
+					brutto.value = '';
+				}
+				calcM2();
+			}
+			function onBrutto(e) {
+				var brutto = parseFloat(e.target.value) || 0;
+				var pairId = e.target.getAttribute('data-pair');
+				var netto = document.getElementById(pairId);
+				if (brutto > 0) {
+					netto.value = (brutto / (1 + getVat() / 100)).toFixed(2);
+				} else {
+					netto.value = '';
+				}
+				calcM2();
+			}
+
+			document.querySelectorAll('.dgr-vat-netto').forEach(function(el) {
+				el.addEventListener('input', onNetto);
+			});
+			document.querySelectorAll('.dgr-vat-brutto').forEach(function(el) {
+				el.addEventListener('input', onBrutto);
+			});
+
+			// Recalculate all when VAT rate changes
+			vatSelect.addEventListener('change', function() {
+				// Recalculate brutto from netto for all pairs
+				document.querySelectorAll('.dgr-vat-netto').forEach(function(el) {
+					var netto = parseFloat(el.value) || 0;
+					if (netto > 0) {
+						var pairId = el.getAttribute('data-pair');
+						document.getElementById(pairId).value = (netto * (1 + getVat() / 100)).toFixed(2);
+					}
+				});
+				calcM2();
+			});
+
+			// Price per m² calculations (always from brutto)
+			function calcM2() {
+				var area = getArea();
+
+				// Gov report price/m²
+				var gov = parseFloat(govPrice.value) || 0;
+				govDisplay.value = (gov > 0 && area > 0) ? fmtM2(gov / area) : '—';
+
+				// Variant prices/m² - show under brutto fields
+				var bruttoFields = [
+					{input: 'dgr_unit_price_shell_brutto', display: 'dgr_m2_shell_brutto'},
+					{input: 'dgr_unit_price_developer_brutto', display: 'dgr_m2_dev_brutto'},
+				];
+				bruttoFields.forEach(function(f) {
+					var price = parseFloat(document.getElementById(f.input).value) || 0;
+					var span = document.getElementById(f.display);
+					span.textContent = (price > 0 && area > 0) ? fmtM2(price / area) : '';
+				});
+
+				// Netto m² display
+				var nettoFields = [
+					{input: 'dgr_unit_price_shell_netto', display: 'dgr_m2_shell_netto'},
+					{input: 'dgr_unit_price_developer_netto', display: 'dgr_m2_dev_netto'},
+				];
+				nettoFields.forEach(function(f) {
+					var price = parseFloat(document.getElementById(f.input).value) || 0;
+					var span = document.getElementById(f.display);
+					span.textContent = (price > 0 && area > 0) ? fmtM2(price / area) : '';
+				});
+			}
+
+			areaField.addEventListener('input', calcM2);
+			govPrice.addEventListener('input', calcM2);
+			calcM2();
+		})();
+		</script>
 		<?php
 	}
 
@@ -191,6 +308,14 @@ class DGR_Metaboxes {
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
 			if ( ! current_user_can( 'edit_post', $post_id ) ) return;
 
+			// VAT rate
+			if ( isset( $_POST['dgr_unit_vat_rate'] ) ) {
+				$vat = intval( $_POST['dgr_unit_vat_rate'] );
+				if ( in_array( $vat, array( 8, 23 ), true ) ) {
+					update_post_meta( $post_id, '_dgr_unit_vat_rate', $vat );
+				}
+			}
+
 			// Text fields
 			$text_fields = array( 'dgr_unit_parent_investment', 'dgr_unit_id', 'dgr_unit_status', 'dgr_unit_location_label' );
 			foreach ( $text_fields as $field ) {
@@ -202,7 +327,6 @@ class DGR_Metaboxes {
 			// Numeric fields - validate as positive numbers
 			$numeric_fields = array(
 				'dgr_unit_price_total'           => 0.01,
-				'dgr_unit_price_m2'              => 0.01,
 				'dgr_unit_area'                  => 0.01,
 				'dgr_unit_rooms'                 => 1,
 				'dgr_unit_floor'                 => 0,
@@ -217,6 +341,26 @@ class DGR_Metaboxes {
 					$value = floatval( $_POST[ $field ] );
 					if ( $value >= $min ) {
 						update_post_meta( $post_id, '_' . $field, $value );
+					}
+				}
+			}
+
+			// Auto-calculate price per m² for all variants
+			$area = floatval( get_post_meta( $post_id, '_dgr_unit_area', true ) );
+			if ( $area > 0 ) {
+				$price_fields_m2 = array(
+					'_dgr_unit_price_total'           => '_dgr_unit_price_m2',
+					'_dgr_unit_price_shell_netto'     => '_dgr_unit_price_shell_netto_m2',
+					'_dgr_unit_price_shell_brutto'    => '_dgr_unit_price_shell_brutto_m2',
+					'_dgr_unit_price_developer_netto'  => '_dgr_unit_price_developer_netto_m2',
+					'_dgr_unit_price_developer_brutto' => '_dgr_unit_price_developer_brutto_m2',
+				);
+				foreach ( $price_fields_m2 as $price_key => $m2_key ) {
+					$price = floatval( get_post_meta( $post_id, $price_key, true ) );
+					if ( $price > 0 ) {
+						update_post_meta( $post_id, $m2_key, round( $price / $area, 2 ) );
+					} else {
+						delete_post_meta( $post_id, $m2_key );
 					}
 				}
 			}

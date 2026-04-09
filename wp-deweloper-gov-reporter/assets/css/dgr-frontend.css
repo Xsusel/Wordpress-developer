@@ -240,6 +240,12 @@
     color: #222;
 }
 
+.dgr-lokal-karta__price-m2 {
+    font-size: 0.85em;
+    color: #555;
+    font-weight: 500;
+}
+
 .dgr-lokal-karta__price-netto {
     font-size: 0.8em;
     color: #999;

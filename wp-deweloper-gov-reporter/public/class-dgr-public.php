@@ -498,6 +498,10 @@ class DGR_Public {
 		$price_developer_netto  = isset( $meta['_dgr_unit_price_developer_netto'][0] ) ? floatval( $meta['_dgr_unit_price_developer_netto'][0] ) : 0;
 		$price_developer_brutto = isset( $meta['_dgr_unit_price_developer_brutto'][0] ) ? floatval( $meta['_dgr_unit_price_developer_brutto'][0] ) : 0;
 
+		// Price per m² (from brutto)
+		$shell_m2     = ( $price_shell_brutto > 0 && $area > 0 ) ? $price_shell_brutto / $area : 0;
+		$developer_m2 = ( $price_developer_brutto > 0 && $area > 0 ) ? $price_developer_brutto / $area : 0;
+
 		$show_netto = ( $atts['show_netto'] === 'yes' );
 
 		ob_start();
@@ -523,6 +527,9 @@ class DGR_Public {
 					<div class="dgr-lokal-karta__price-block">
 						<span class="dgr-lokal-karta__price-label"><?php esc_html_e( 'Stan surowy zamknięty', 'wp-deweloper-gov-reporter' ); ?></span>
 						<span class="dgr-lokal-karta__price-value"><?php echo esc_html( $this->format_price( $price_shell_brutto ) ); ?></span>
+						<?php if ( $shell_m2 > 0 ) : ?>
+							<span class="dgr-lokal-karta__price-m2"><?php echo esc_html( number_format( $shell_m2, 2, ',', ' ' ) ); ?> zł/m&sup2;</span>
+						<?php endif; ?>
 						<?php if ( $show_netto && $price_shell_netto > 0 ) : ?>
 							<span class="dgr-lokal-karta__price-netto"><?php echo esc_html( sprintf( __( 'netto: %s', 'wp-deweloper-gov-reporter' ), $this->format_price( $price_shell_netto ) ) ); ?></span>
 						<?php endif; ?>
@@ -533,6 +540,9 @@ class DGR_Public {
 					<div class="dgr-lokal-karta__price-block">
 						<span class="dgr-lokal-karta__price-label"><?php esc_html_e( 'Deweloperski', 'wp-deweloper-gov-reporter' ); ?></span>
 						<span class="dgr-lokal-karta__price-value"><?php echo esc_html( $this->format_price( $price_developer_brutto ) ); ?></span>
+						<?php if ( $developer_m2 > 0 ) : ?>
+							<span class="dgr-lokal-karta__price-m2"><?php echo esc_html( number_format( $developer_m2, 2, ',', ' ' ) ); ?> zł/m&sup2;</span>
+						<?php endif; ?>
 						<?php if ( $show_netto && $price_developer_netto > 0 ) : ?>
 							<span class="dgr-lokal-karta__price-netto"><?php echo esc_html( sprintf( __( 'netto: %s', 'wp-deweloper-gov-reporter' ), $this->format_price( $price_developer_netto ) ) ); ?></span>
 						<?php endif; ?>
