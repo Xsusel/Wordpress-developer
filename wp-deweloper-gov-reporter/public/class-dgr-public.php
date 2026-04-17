@@ -19,6 +19,7 @@ class DGR_Public {
 		add_shortcode( 'dgr_unit_details', array( $this, 'render_unit_details' ) );
 		add_shortcode( 'dgr_unit_list', array( $this, 'render_unit_list' ) );
 		add_shortcode( 'dgr_lokal_karta', array( $this, 'render_lokal_karta' ) );
+		add_shortcode( 'dgr_lokal_karta_full', array( $this, 'render_lokal_karta_full' ) );
 		add_shortcode( 'dgr_lokal_cena', array( $this, 'render_lokal_cena' ) );
 		add_shortcode( 'dgr_lokal_metraz', array( $this, 'render_lokal_metraz' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
@@ -336,6 +337,9 @@ class DGR_Public {
 			'show_price_total' => 'yes',
 			'show_price_m2' => 'yes',
 			'show_omnibus' => 'no',
+			'show_balconies' => 'yes',
+			'show_garage' => 'yes',
+			'show_storage' => 'yes',
 		);
 		$atts = shortcode_atts( $defaults, $atts, 'dgr_unit_details' );
 
@@ -382,6 +386,51 @@ class DGR_Public {
 				?>
 					<li><strong><?php esc_html_e( 'Piętro:', 'wp-deweloper-gov-reporter' ); ?></strong> <?php echo esc_html( $floor ); ?></li>
 				<?php endif; ?>
+
+				<?php if ( $atts['show_balconies'] === 'yes' ) :
+					$balconies_count = isset( $meta['_dgr_unit_balconies_count'][0] ) ? $meta['_dgr_unit_balconies_count'][0] : '';
+					$balconies_area  = isset( $meta['_dgr_unit_balconies_area'][0] ) ? $meta['_dgr_unit_balconies_area'][0] : '';
+					if ( '' !== $balconies_count || '' !== $balconies_area ) :
+				?>
+					<li><strong><?php esc_html_e( 'Balkony:', 'wp-deweloper-gov-reporter' ); ?></strong>
+						<?php echo esc_html( '' !== $balconies_count ? $balconies_count : '-' ); ?>
+						<?php if ( '' !== $balconies_area ) : ?>
+							(<?php echo esc_html( number_format( floatval( $balconies_area ), 2, ',', ' ' ) ); ?> m²)
+						<?php endif; ?>
+					</li>
+				<?php endif; endif; ?>
+
+				<?php if ( $atts['show_garage'] === 'yes' ) :
+					$garage_number       = isset( $meta['_dgr_unit_garage_number'][0] ) ? $meta['_dgr_unit_garage_number'][0] : '';
+					$garage_price_brutto = isset( $meta['_dgr_unit_garage_price_brutto'][0] ) ? $meta['_dgr_unit_garage_price_brutto'][0] : '';
+					if ( '' !== $garage_number || '' !== $garage_price_brutto ) :
+				?>
+					<li><strong><?php esc_html_e( 'Garaż:', 'wp-deweloper-gov-reporter' ); ?></strong>
+						<?php if ( '' !== $garage_number ) : ?>
+							<?php esc_html_e( 'nr', 'wp-deweloper-gov-reporter' ); ?> <?php echo esc_html( $garage_number ); ?>
+						<?php endif; ?>
+						<?php if ( '' !== $garage_price_brutto ) : ?>
+							<?php echo '' !== $garage_number ? '—' : ''; ?>
+							<?php echo esc_html( number_format( floatval( $garage_price_brutto ), 2, ',', ' ' ) ); ?> zł brutto
+						<?php endif; ?>
+					</li>
+				<?php endif; endif; ?>
+
+				<?php if ( $atts['show_storage'] === 'yes' ) :
+					$storage_number       = isset( $meta['_dgr_unit_storage_number'][0] ) ? $meta['_dgr_unit_storage_number'][0] : '';
+					$storage_price_brutto = isset( $meta['_dgr_unit_storage_price_brutto'][0] ) ? $meta['_dgr_unit_storage_price_brutto'][0] : '';
+					if ( '' !== $storage_number || '' !== $storage_price_brutto ) :
+				?>
+					<li><strong><?php esc_html_e( 'Komórka lokatorska:', 'wp-deweloper-gov-reporter' ); ?></strong>
+						<?php if ( '' !== $storage_number ) : ?>
+							<?php esc_html_e( 'nr', 'wp-deweloper-gov-reporter' ); ?> <?php echo esc_html( $storage_number ); ?>
+						<?php endif; ?>
+						<?php if ( '' !== $storage_price_brutto ) : ?>
+							<?php echo '' !== $storage_number ? '—' : ''; ?>
+							<?php echo esc_html( number_format( floatval( $storage_price_brutto ), 2, ',', ' ' ) ); ?> zł brutto
+						<?php endif; ?>
+					</li>
+				<?php endif; endif; ?>
 
 				<?php if ( $atts['show_status'] === 'yes' ) :
 					$status = isset( $meta['_dgr_unit_status'][0] ) ? $meta['_dgr_unit_status'][0] : '-';
@@ -549,6 +598,212 @@ class DGR_Public {
 					</div>
 				<?php endif; ?>
 			</div>
+		</div>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * Shortcode [dgr_lokal_karta_full id="123"]
+	 *
+	 * Full property card: all unit data + pricing + accessories (garage, storage, balconies).
+	 */
+	public function render_lokal_karta_full( $atts ) {
+		wp_enqueue_style( 'dgr-frontend-css' );
+
+		$atts = shortcode_atts( array(
+			'id'         => get_the_ID(),
+			'show_netto' => 'yes',
+		), $atts, 'dgr_lokal_karta_full' );
+
+		$post_id = intval( $atts['id'] );
+
+		if ( get_post_type( $post_id ) !== 'dgr_unit' ) {
+			return '';
+		}
+
+		$meta = get_post_meta( $post_id );
+
+		$get = function( $key ) use ( $meta ) {
+			return isset( $meta[ $key ][0] ) ? $meta[ $key ][0] : '';
+		};
+
+		$parent_id       = intval( $get( '_dgr_unit_parent_investment' ) );
+		$investment_name = $parent_id ? get_the_title( $parent_id ) : '';
+		$investment_addr = '';
+		if ( $parent_id ) {
+			$inv = get_post_meta( $parent_id );
+			$street  = isset( $inv['_dgr_investment_street'][0] ) ? $inv['_dgr_investment_street'][0] : '';
+			$bldg    = isset( $inv['_dgr_investment_building_number'][0] ) ? $inv['_dgr_investment_building_number'][0] : '';
+			$city    = isset( $inv['_dgr_investment_city'][0] ) ? $inv['_dgr_investment_city'][0] : '';
+			$parts   = array_filter( array( trim( $street . ' ' . $bldg ), $city ) );
+			$investment_addr = implode( ', ', $parts );
+		}
+		$unit_id         = $get( '_dgr_unit_id' );
+		$unit_type       = $get( '_dgr_unit_type' );
+		$location        = $get( '_dgr_unit_location_label' );
+		$area            = floatval( $get( '_dgr_unit_area' ) );
+		$rooms           = $get( '_dgr_unit_rooms' );
+		$floor           = $get( '_dgr_unit_floor' );
+		$status          = $get( '_dgr_unit_status' );
+
+		$price_total  = floatval( $get( '_dgr_unit_price_total' ) );
+		$price_m2     = floatval( $get( '_dgr_unit_price_m2' ) );
+
+		$price_shell_netto      = floatval( $get( '_dgr_unit_price_shell_netto' ) );
+		$price_shell_brutto     = floatval( $get( '_dgr_unit_price_shell_brutto' ) );
+		$price_developer_netto  = floatval( $get( '_dgr_unit_price_developer_netto' ) );
+		$price_developer_brutto = floatval( $get( '_dgr_unit_price_developer_brutto' ) );
+
+		$shell_m2     = ( $price_shell_brutto > 0 && $area > 0 ) ? $price_shell_brutto / $area : 0;
+		$developer_m2 = ( $price_developer_brutto > 0 && $area > 0 ) ? $price_developer_brutto / $area : 0;
+
+		$balconies_count      = $get( '_dgr_unit_balconies_count' );
+		$balconies_area       = $get( '_dgr_unit_balconies_area' );
+		$garage_number        = $get( '_dgr_unit_garage_number' );
+		$garage_price_brutto  = floatval( $get( '_dgr_unit_garage_price_brutto' ) );
+		$storage_number       = $get( '_dgr_unit_storage_number' );
+		$storage_price_brutto = floatval( $get( '_dgr_unit_storage_price_brutto' ) );
+
+		$status_labels = array(
+			'available'             => __( 'Dostępny', 'wp-deweloper-gov-reporter' ),
+			'offer'                 => __( 'Oferta specjalna', 'wp-deweloper-gov-reporter' ),
+			'reserved'              => __( 'Zarezerwowany', 'wp-deweloper-gov-reporter' ),
+			'reservation_agreement' => __( 'Umowa rezerwacyjna', 'wp-deweloper-gov-reporter' ),
+			'developer_agreement'   => __( 'Umowa deweloperska', 'wp-deweloper-gov-reporter' ),
+			'sold'                  => __( 'Sprzedany', 'wp-deweloper-gov-reporter' ),
+			'transferred'           => __( 'Przekazany', 'wp-deweloper-gov-reporter' ),
+		);
+		$status_label = isset( $status_labels[ $status ] ) ? $status_labels[ $status ] : ucfirst( $status );
+		$status_class = $status ? 'status-' . sanitize_html_class( $status ) : '';
+
+		$show_netto = ( $atts['show_netto'] === 'yes' );
+
+		ob_start();
+		?>
+		<div class="dgr-lokal-karta dgr-lokal-karta--full">
+			<div class="dgr-lokal-karta__header">
+				<?php if ( $location ) : ?>
+					<span class="dgr-lokal-karta__location">
+						<svg class="dgr-lokal-karta__icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+						<?php echo esc_html( $location ); ?>
+					</span>
+				<?php endif; ?>
+				<?php if ( $status ) : ?>
+					<span class="dgr-status-badge <?php echo esc_attr( $status_class ); ?>"><?php echo esc_html( $status_label ); ?></span>
+				<?php endif; ?>
+			</div>
+
+			<ul class="dgr-lokal-karta__specs">
+				<?php if ( $investment_name ) : ?>
+					<li><span class="dgr-lokal-karta__spec-label"><?php esc_html_e( 'Inwestycja', 'wp-deweloper-gov-reporter' ); ?></span><span class="dgr-lokal-karta__spec-value"><?php echo esc_html( $investment_name ); ?></span></li>
+				<?php endif; ?>
+				<?php if ( $investment_addr ) : ?>
+					<li><span class="dgr-lokal-karta__spec-label"><?php esc_html_e( 'Adres', 'wp-deweloper-gov-reporter' ); ?></span><span class="dgr-lokal-karta__spec-value"><?php echo esc_html( $investment_addr ); ?></span></li>
+				<?php endif; ?>
+				<?php if ( $unit_type ) :
+					$type_labels = array( 'lokal_mieszkalny' => __( 'Lokal mieszkalny', 'wp-deweloper-gov-reporter' ), 'dom_jednorodzinny' => __( 'Dom jednorodzinny', 'wp-deweloper-gov-reporter' ) );
+				?>
+					<li><span class="dgr-lokal-karta__spec-label"><?php esc_html_e( 'Rodzaj', 'wp-deweloper-gov-reporter' ); ?></span><span class="dgr-lokal-karta__spec-value"><?php echo esc_html( isset( $type_labels[ $unit_type ] ) ? $type_labels[ $unit_type ] : $unit_type ); ?></span></li>
+				<?php endif; ?>
+				<?php if ( '' !== $unit_id ) : ?>
+					<li><span class="dgr-lokal-karta__spec-label"><?php esc_html_e( 'Nr lokalu', 'wp-deweloper-gov-reporter' ); ?></span><span class="dgr-lokal-karta__spec-value"><?php echo esc_html( $unit_id ); ?></span></li>
+				<?php endif; ?>
+				<?php if ( $area > 0 ) : ?>
+					<li><span class="dgr-lokal-karta__spec-label"><?php esc_html_e( 'Powierzchnia', 'wp-deweloper-gov-reporter' ); ?></span><span class="dgr-lokal-karta__spec-value"><?php echo esc_html( number_format( $area, 2, ',', ' ' ) ); ?> m&sup2;</span></li>
+				<?php endif; ?>
+				<?php if ( '' !== $rooms ) : ?>
+					<li><span class="dgr-lokal-karta__spec-label"><?php esc_html_e( 'Liczba pokoi', 'wp-deweloper-gov-reporter' ); ?></span><span class="dgr-lokal-karta__spec-value"><?php echo esc_html( $rooms ); ?></span></li>
+				<?php endif; ?>
+				<?php if ( '' !== $floor ) : ?>
+					<li><span class="dgr-lokal-karta__spec-label"><?php esc_html_e( 'Piętro', 'wp-deweloper-gov-reporter' ); ?></span><span class="dgr-lokal-karta__spec-value"><?php echo esc_html( $floor ); ?></span></li>
+				<?php endif; ?>
+				<?php if ( '' !== $balconies_count || '' !== $balconies_area ) : ?>
+					<li>
+						<span class="dgr-lokal-karta__spec-label"><?php esc_html_e( 'Balkony', 'wp-deweloper-gov-reporter' ); ?></span>
+						<span class="dgr-lokal-karta__spec-value">
+							<?php echo esc_html( '' !== $balconies_count ? $balconies_count : '—' ); ?>
+							<?php if ( '' !== $balconies_area ) : ?>
+								(<?php echo esc_html( number_format( floatval( $balconies_area ), 2, ',', ' ' ) ); ?> m&sup2;)
+							<?php endif; ?>
+						</span>
+					</li>
+				<?php endif; ?>
+			</ul>
+
+			<?php if ( $price_total > 0 || $price_shell_brutto > 0 || $price_developer_brutto > 0 ) : ?>
+				<div class="dgr-lokal-karta__prices">
+					<?php if ( $price_total > 0 ) : ?>
+						<div class="dgr-lokal-karta__price-block">
+							<span class="dgr-lokal-karta__price-label"><?php esc_html_e( 'Cena całkowita brutto', 'wp-deweloper-gov-reporter' ); ?></span>
+							<span class="dgr-lokal-karta__price-value"><?php echo esc_html( $this->format_price( $price_total ) ); ?></span>
+							<?php if ( $price_m2 > 0 ) : ?>
+								<span class="dgr-lokal-karta__price-m2"><?php echo esc_html( number_format( $price_m2, 2, ',', ' ' ) ); ?> zł/m&sup2;</span>
+							<?php endif; ?>
+						</div>
+					<?php endif; ?>
+
+					<?php if ( $price_shell_brutto > 0 ) : ?>
+						<div class="dgr-lokal-karta__price-block">
+							<span class="dgr-lokal-karta__price-label"><?php esc_html_e( 'Stan surowy zamknięty', 'wp-deweloper-gov-reporter' ); ?></span>
+							<span class="dgr-lokal-karta__price-value"><?php echo esc_html( $this->format_price( $price_shell_brutto ) ); ?></span>
+							<?php if ( $shell_m2 > 0 ) : ?>
+								<span class="dgr-lokal-karta__price-m2"><?php echo esc_html( number_format( $shell_m2, 2, ',', ' ' ) ); ?> zł/m&sup2;</span>
+							<?php endif; ?>
+							<?php if ( $show_netto && $price_shell_netto > 0 ) : ?>
+								<span class="dgr-lokal-karta__price-netto"><?php echo esc_html( sprintf( __( 'netto: %s', 'wp-deweloper-gov-reporter' ), $this->format_price( $price_shell_netto ) ) ); ?></span>
+							<?php endif; ?>
+						</div>
+					<?php endif; ?>
+
+					<?php if ( $price_developer_brutto > 0 ) : ?>
+						<div class="dgr-lokal-karta__price-block">
+							<span class="dgr-lokal-karta__price-label"><?php esc_html_e( 'Deweloperski', 'wp-deweloper-gov-reporter' ); ?></span>
+							<span class="dgr-lokal-karta__price-value"><?php echo esc_html( $this->format_price( $price_developer_brutto ) ); ?></span>
+							<?php if ( $developer_m2 > 0 ) : ?>
+								<span class="dgr-lokal-karta__price-m2"><?php echo esc_html( number_format( $developer_m2, 2, ',', ' ' ) ); ?> zł/m&sup2;</span>
+							<?php endif; ?>
+							<?php if ( $show_netto && $price_developer_netto > 0 ) : ?>
+								<span class="dgr-lokal-karta__price-netto"><?php echo esc_html( sprintf( __( 'netto: %s', 'wp-deweloper-gov-reporter' ), $this->format_price( $price_developer_netto ) ) ); ?></span>
+							<?php endif; ?>
+						</div>
+					<?php endif; ?>
+				</div>
+			<?php endif; ?>
+
+			<?php if ( ( '' !== $garage_number || $garage_price_brutto > 0 ) || ( '' !== $storage_number || $storage_price_brutto > 0 ) ) : ?>
+				<div class="dgr-lokal-karta__extras">
+					<?php if ( '' !== $garage_number || $garage_price_brutto > 0 ) : ?>
+						<div class="dgr-lokal-karta__extra">
+							<span class="dgr-lokal-karta__extra-label"><?php esc_html_e( 'Garaż', 'wp-deweloper-gov-reporter' ); ?></span>
+							<span class="dgr-lokal-karta__extra-value">
+								<?php if ( '' !== $garage_number ) : ?>
+									<?php echo esc_html( sprintf( __( 'nr %s', 'wp-deweloper-gov-reporter' ), $garage_number ) ); ?>
+								<?php endif; ?>
+								<?php if ( $garage_price_brutto > 0 ) : ?>
+									<?php echo '' !== $garage_number ? ' — ' : ''; ?>
+									<?php echo esc_html( $this->format_price( $garage_price_brutto ) ); ?> <?php esc_html_e( 'brutto', 'wp-deweloper-gov-reporter' ); ?>
+								<?php endif; ?>
+							</span>
+						</div>
+					<?php endif; ?>
+
+					<?php if ( '' !== $storage_number || $storage_price_brutto > 0 ) : ?>
+						<div class="dgr-lokal-karta__extra">
+							<span class="dgr-lokal-karta__extra-label"><?php esc_html_e( 'Komórka lokatorska', 'wp-deweloper-gov-reporter' ); ?></span>
+							<span class="dgr-lokal-karta__extra-value">
+								<?php if ( '' !== $storage_number ) : ?>
+									<?php echo esc_html( sprintf( __( 'nr %s', 'wp-deweloper-gov-reporter' ), $storage_number ) ); ?>
+								<?php endif; ?>
+								<?php if ( $storage_price_brutto > 0 ) : ?>
+									<?php echo '' !== $storage_number ? ' — ' : ''; ?>
+									<?php echo esc_html( $this->format_price( $storage_price_brutto ) ); ?> <?php esc_html_e( 'brutto', 'wp-deweloper-gov-reporter' ); ?>
+								<?php endif; ?>
+							</span>
+						</div>
+					<?php endif; ?>
+				</div>
+			<?php endif; ?>
 		</div>
 		<?php
 		return ob_get_clean();

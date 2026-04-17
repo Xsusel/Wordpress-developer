@@ -19,6 +19,7 @@ class DGR_Admin {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_init', array( $this, 'maybe_flush_rewrite_rules' ) );
 		add_action( 'admin_init', array( $this, 'process_export_csv' ) );
+		add_action( 'admin_init', array( $this, 'process_export_gov_csv' ) );
 		add_action( 'admin_init', array( $this, 'process_generate_now' ) );
 		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widgets' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
@@ -155,46 +156,35 @@ class DGR_Admin {
 	}
 
 	public function register_settings() {
-		register_setting( 'dgr_options_group', 'dgr_developer_nip', array(
-			'sanitize_callback' => 'sanitize_text_field',
-		) );
-		register_setting( 'dgr_options_group', 'dgr_developer_name', array(
-			'sanitize_callback' => 'sanitize_text_field',
-		) );
-		register_setting( 'dgr_options_group', 'dgr_admin_email_notifications', array(
-			'sanitize_callback' => 'sanitize_text_field',
-		) );
+		$text_options = array(
+			'dgr_developer_name', 'dgr_developer_nip', 'dgr_developer_legal_form',
+			'dgr_developer_regon', 'dgr_developer_krs', 'dgr_developer_email',
+			'dgr_developer_phone', 'dgr_admin_email_notifications',
+		);
+		foreach ( $text_options as $opt ) {
+			register_setting( 'dgr_options_group', $opt, array( 'sanitize_callback' => 'sanitize_text_field' ) );
+		}
 
 		add_settings_section(
 			'dgr_general_section',
-			__( 'Dane Dewelopera', 'wp-deweloper-gov-reporter' ),
+			__( 'Dane Dewelopera (wymagane przez ustawę)', 'wp-deweloper-gov-reporter' ),
 			null,
 			'wp-deweloper-gov-reporter'
 		);
 
-		add_settings_field(
-			'dgr_developer_name',
-			__( 'Nazwa Firmy', 'wp-deweloper-gov-reporter' ),
-			array( $this, 'render_field_developer_name' ),
-			'wp-deweloper-gov-reporter',
-			'dgr_general_section'
+		$fields = array(
+			'dgr_developer_name'            => array( __( 'Nazwa dewelopera', 'wp-deweloper-gov-reporter' ), 'render_field_developer_name' ),
+			'dgr_developer_legal_form'      => array( __( 'Forma prawna', 'wp-deweloper-gov-reporter' ), 'render_field_developer_legal_form' ),
+			'dgr_developer_nip'             => array( __( 'NIP', 'wp-deweloper-gov-reporter' ), 'render_field_developer_nip' ),
+			'dgr_developer_regon'           => array( __( 'REGON', 'wp-deweloper-gov-reporter' ), 'render_field_developer_regon' ),
+			'dgr_developer_krs'             => array( __( 'KRS / CEIDG', 'wp-deweloper-gov-reporter' ), 'render_field_developer_krs' ),
+			'dgr_developer_email'           => array( __( 'Email kontaktowy', 'wp-deweloper-gov-reporter' ), 'render_field_developer_email' ),
+			'dgr_developer_phone'           => array( __( 'Telefon kontaktowy', 'wp-deweloper-gov-reporter' ), 'render_field_developer_phone' ),
+			'dgr_admin_email_notifications' => array( __( 'Powiadomienia email', 'wp-deweloper-gov-reporter' ), 'render_field_email_notifications' ),
 		);
-
-		add_settings_field(
-			'dgr_developer_nip',
-			__( 'NIP Dewelopera', 'wp-deweloper-gov-reporter' ),
-			array( $this, 'render_field_developer_nip' ),
-			'wp-deweloper-gov-reporter',
-			'dgr_general_section'
-		);
-
-		add_settings_field(
-			'dgr_admin_email_notifications',
-			__( 'Powiadomienia email', 'wp-deweloper-gov-reporter' ),
-			array( $this, 'render_field_email_notifications' ),
-			'wp-deweloper-gov-reporter',
-			'dgr_general_section'
-		);
+		foreach ( $fields as $id => $def ) {
+			add_settings_field( $id, $def[0], array( $this, $def[1] ), 'wp-deweloper-gov-reporter', 'dgr_general_section' );
+		}
 	}
 
 	public function render_field_developer_name() {
@@ -207,6 +197,48 @@ class DGR_Admin {
 		$value = get_option( 'dgr_developer_nip' );
 		echo '<input type="text" name="dgr_developer_nip" value="' . esc_attr( $value ) . '" class="regular-text" pattern="[0-9]{10}" title="NIP: 10 cyfr">';
 		echo '<p class="description">' . esc_html__( 'NIP firmy (10 cyfr, bez myślników).', 'wp-deweloper-gov-reporter' ) . '</p>';
+	}
+
+	public function render_field_developer_legal_form() {
+		$value = get_option( 'dgr_developer_legal_form', '' );
+		$forms = array(
+			''             => __( '— wybierz —', 'wp-deweloper-gov-reporter' ),
+			'sp_z_oo'      => 'Spółka z o.o.',
+			'sa'           => 'Spółka akcyjna',
+			'sp_j'         => 'Spółka jawna',
+			'sp_k'         => 'Spółka komandytowa',
+			'sp_ka'        => 'Spółka komandytowo-akcyjna',
+			'sp_p'         => 'Spółka partnerska',
+			'dzial_gosp'   => 'Działalność gospodarcza',
+			'inna'         => 'Inna',
+		);
+		echo '<select name="dgr_developer_legal_form">';
+		foreach ( $forms as $k => $label ) {
+			printf( '<option value="%s" %s>%s</option>', esc_attr( $k ), selected( $value, $k, false ), esc_html( $label ) );
+		}
+		echo '</select>';
+	}
+
+	public function render_field_developer_regon() {
+		$value = get_option( 'dgr_developer_regon' );
+		echo '<input type="text" name="dgr_developer_regon" value="' . esc_attr( $value ) . '" class="regular-text" pattern="[0-9]{9}|[0-9]{14}" title="REGON: 9 lub 14 cyfr">';
+		echo '<p class="description">' . esc_html__( 'REGON (9 lub 14 cyfr).', 'wp-deweloper-gov-reporter' ) . '</p>';
+	}
+
+	public function render_field_developer_krs() {
+		$value = get_option( 'dgr_developer_krs' );
+		echo '<input type="text" name="dgr_developer_krs" value="' . esc_attr( $value ) . '" class="regular-text">';
+		echo '<p class="description">' . esc_html__( 'Numer KRS lub wpis CEIDG.', 'wp-deweloper-gov-reporter' ) . '</p>';
+	}
+
+	public function render_field_developer_email() {
+		$value = get_option( 'dgr_developer_email' );
+		echo '<input type="email" name="dgr_developer_email" value="' . esc_attr( $value ) . '" class="regular-text">';
+	}
+
+	public function render_field_developer_phone() {
+		$value = get_option( 'dgr_developer_phone' );
+		echo '<input type="tel" name="dgr_developer_phone" value="' . esc_attr( $value ) . '" class="regular-text">';
 	}
 
 	public function render_field_email_notifications() {
@@ -295,6 +327,11 @@ class DGR_Admin {
 					<li><?php esc_html_e( 'Rejestrujesz te adresy URL w dane.gov.pl (mail na kontakt@dane.gov.pl).', 'wp-deweloper-gov-reporter' ); ?></li>
 					<li><?php esc_html_e( 'System dane.gov.pl automatycznie pobiera dane z Twojego serwera raz dziennie.', 'wp-deweloper-gov-reporter' ); ?></li>
 				</ol>
+				<div class="notice notice-warning inline" style="margin-top:10px;">
+					<p><strong><?php esc_html_e( 'Ważne:', 'wp-deweloper-gov-reporter' ); ?></strong>
+					<?php esc_html_e( 'Struktura raportu (XML + CSV) jest zgodna z Rozporządzeniem MRiT z 20.06.2024 (Dz.U. 2024 poz. 933) co do zakresu danych i układu kolumn. Oficjalny harvester dane.gov.pl może używać innych dokładnych nazw elementów/XSD — przed rejestracją porównaj wygenerowany plik z aktualną specyfikacją techniczną na dane.gov.pl.', 'wp-deweloper-gov-reporter' ); ?>
+					</p>
+				</div>
 			</div>
 
 			<hr>
@@ -313,11 +350,20 @@ class DGR_Admin {
 
 			<!-- CSV Export -->
 			<h2><?php esc_html_e( 'Eksport Danych', 'wp-deweloper-gov-reporter' ); ?></h2>
-			<form method="post" action="">
+			<form method="post" action="" style="margin-bottom:10px;">
 				<?php wp_nonce_field( 'dgr_export_csv_action', 'dgr_export_csv_nonce' ); ?>
 				<input type="hidden" name="dgr_export_csv" value="1">
 				<p>
-					<?php submit_button( __( 'Eksportuj wszystkie lokale do CSV', 'wp-deweloper-gov-reporter' ), 'secondary', 'submit', false ); ?>
+					<?php submit_button( __( 'Eksport wewnętrzny (CSV)', 'wp-deweloper-gov-reporter' ), 'secondary', 'submit', false ); ?>
+					<span class="description" style="margin-left:8px;"><?php esc_html_e( 'Pełne dane lokali w jednym pliku – użytek wewnętrzny.', 'wp-deweloper-gov-reporter' ); ?></span>
+				</p>
+			</form>
+			<form method="post" action="">
+				<?php wp_nonce_field( 'dgr_export_gov_csv_action', 'dgr_export_gov_csv_nonce' ); ?>
+				<input type="hidden" name="dgr_export_gov_csv" value="1">
+				<p>
+					<?php submit_button( __( 'Eksport CSV dla dane.gov.pl (ustawa deweloperska)', 'wp-deweloper-gov-reporter' ), 'primary', 'submit', false ); ?>
+					<span class="description" style="margin-left:8px;"><?php esc_html_e( 'Format zgodny ze strukturą rozporządzenia MRiT — zweryfikuj nagłówki z aktualnym XSD/CSV dane.gov.pl przed wysyłką.', 'wp-deweloper-gov-reporter' ); ?></span>
 				</p>
 			</form>
 
@@ -384,7 +430,7 @@ class DGR_Admin {
 		// BOM for Excel UTF-8 compatibility
 		fputs( $output, "\xEF\xBB\xBF" );
 
-		fputcsv( $output, array( 'ID', 'Inwestycja', 'Numer Lokalu', 'Powierzchnia', 'Pokoje', 'Piętro', 'Status', 'Cena Całkowita', 'Cena m2' ) );
+		fputcsv( $output, array( 'ID', 'Inwestycja', 'Numer Lokalu', 'Powierzchnia', 'Pokoje', 'Piętro', 'Status', 'Cena Całkowita', 'Cena m2', 'Ilość Balkonów', 'Powierzchnia Balkonów', 'Nr Garażu', 'Cena Brutto Garażu', 'Nr Komórki', 'Cena Brutto Komórki' ) );
 
 		// Paginated export to avoid memory exhaustion
 		$page = 1;
@@ -413,6 +459,12 @@ class DGR_Admin {
 					isset( $meta['_dgr_unit_status'][0] ) ? $meta['_dgr_unit_status'][0] : '',
 					isset( $meta['_dgr_unit_price_total'][0] ) ? $meta['_dgr_unit_price_total'][0] : '',
 					isset( $meta['_dgr_unit_price_m2'][0] ) ? $meta['_dgr_unit_price_m2'][0] : '',
+					isset( $meta['_dgr_unit_balconies_count'][0] ) ? $meta['_dgr_unit_balconies_count'][0] : '',
+					isset( $meta['_dgr_unit_balconies_area'][0] ) ? $meta['_dgr_unit_balconies_area'][0] : '',
+					isset( $meta['_dgr_unit_garage_number'][0] ) ? $meta['_dgr_unit_garage_number'][0] : '',
+					isset( $meta['_dgr_unit_garage_price_brutto'][0] ) ? $meta['_dgr_unit_garage_price_brutto'][0] : '',
+					isset( $meta['_dgr_unit_storage_number'][0] ) ? $meta['_dgr_unit_storage_number'][0] : '',
+					isset( $meta['_dgr_unit_storage_price_brutto'][0] ) ? $meta['_dgr_unit_storage_price_brutto'][0] : '',
 				) );
 			}
 
@@ -423,6 +475,159 @@ class DGR_Admin {
 
 		fclose( $output );
 		exit;
+	}
+
+	/**
+	 * CSV export for dane.gov.pl (Rozporządzenie MRiT z 20.06.2024, Dz.U. 2024 poz. 933).
+	 * Column structure follows the regulation. Rows include per-unit data
+	 * plus one row per accessory (miejsce postojowe / garaż / komórka lokatorska).
+	 */
+	public function process_export_gov_csv() {
+		if ( ! isset( $_POST['dgr_export_gov_csv'] ) ) return;
+		if ( ! isset( $_POST['dgr_export_gov_csv_nonce'] ) || ! wp_verify_nonce( $_POST['dgr_export_gov_csv_nonce'], 'dgr_export_gov_csv_action' ) ) return;
+		if ( ! current_user_can( 'manage_options' ) ) return;
+
+		if ( ob_get_level() ) ob_end_clean();
+
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename=ceny-mieszkan-' . wp_date( 'Y-m-d' ) . '.csv' );
+
+		$out = fopen( 'php://output', 'w' );
+		fputs( $out, "\xEF\xBB\xBF" );
+
+		$headers = array(
+			'nazwa_dewelopera', 'forma_prawna', 'nip', 'regon', 'krs',
+			'email', 'telefon',
+			'wojewodztwo', 'powiat', 'gmina', 'miejscowosc', 'ulica', 'nr_nieruchomosci', 'kod_pocztowy',
+			'rodzaj_lokalu', 'numer_lokalu',
+			'cena_m2_poczatkowa', 'data_rozpoczecia_sprzedazy', 'cena_m2_aktualna', 'data_aktualizacji_ceny_m2',
+			'cena_calkowita_poczatkowa', 'cena_calkowita_aktualna', 'data_aktualizacji_ceny_calkowitej',
+			'cena_sprzedazy', 'data_sprzedazy',
+			'rodzaj_przynaleznosci', 'oznaczenie_przynaleznosci', 'cena_przynaleznosci',
+		);
+		fputcsv( $out, $headers, ';' );
+
+		$dev = array(
+			'name'       => get_option( 'dgr_developer_name', '' ),
+			'legal_form' => $this->legal_form_label( get_option( 'dgr_developer_legal_form', '' ) ),
+			'nip'        => get_option( 'dgr_developer_nip', '' ),
+			'regon'      => get_option( 'dgr_developer_regon', '' ),
+			'krs'        => get_option( 'dgr_developer_krs', '' ),
+			'email'      => get_option( 'dgr_developer_email', '' ),
+			'phone'      => get_option( 'dgr_developer_phone', '' ),
+		);
+
+		$page = 1; $per_page = 100;
+		do {
+			$query = new WP_Query( array(
+				'post_type'      => 'dgr_unit',
+				'posts_per_page' => $per_page,
+				'paged'          => $page,
+				'post_status'    => 'publish',
+			) );
+
+			foreach ( $query->posts as $unit ) {
+				$m         = get_post_meta( $unit->ID );
+				$parent_id = isset( $m['_dgr_unit_parent_investment'][0] ) ? intval( $m['_dgr_unit_parent_investment'][0] ) : 0;
+				$inv       = $parent_id ? get_post_meta( $parent_id ) : array();
+
+				$price_total_now = isset( $m['_dgr_unit_price_total'][0] ) ? $m['_dgr_unit_price_total'][0] : '';
+				$price_m2_now    = isset( $m['_dgr_unit_price_m2'][0] ) ? $m['_dgr_unit_price_m2'][0] : '';
+				$price_total_ini = isset( $m['_dgr_unit_price_total_initial'][0] ) ? $m['_dgr_unit_price_total_initial'][0] : $price_total_now;
+				$price_m2_ini    = isset( $m['_dgr_unit_price_m2_initial'][0] ) ? $m['_dgr_unit_price_m2_initial'][0] : $price_m2_now;
+				$status          = isset( $m['_dgr_unit_status'][0] ) ? $m['_dgr_unit_status'][0] : '';
+				$price_sale      = isset( $m['_dgr_unit_price_sale_brutto'][0] ) ? $m['_dgr_unit_price_sale_brutto'][0] : '';
+				$date_sale       = isset( $m['_dgr_unit_sale_date'][0] ) ? $m['_dgr_unit_sale_date'][0] : '';
+				$date_start      = isset( $m['_dgr_unit_sale_start_date'][0] ) ? $m['_dgr_unit_sale_start_date'][0] : '';
+				$date_updated    = get_post_modified_time( 'Y-m-d', true, $unit );
+
+				$base_row = array(
+					$dev['name'], $dev['legal_form'], $dev['nip'], $dev['regon'], $dev['krs'],
+					$dev['email'], $dev['phone'],
+					isset( $inv['_dgr_investment_voivodeship'][0] ) ? $inv['_dgr_investment_voivodeship'][0] : '',
+					isset( $inv['_dgr_investment_county'][0] ) ? $inv['_dgr_investment_county'][0] : '',
+					isset( $inv['_dgr_investment_commune'][0] ) ? $inv['_dgr_investment_commune'][0] : '',
+					isset( $inv['_dgr_investment_city'][0] ) ? $inv['_dgr_investment_city'][0] : '',
+					isset( $inv['_dgr_investment_street'][0] ) ? $inv['_dgr_investment_street'][0] : '',
+					isset( $inv['_dgr_investment_building_number'][0] ) ? $inv['_dgr_investment_building_number'][0] : '',
+					isset( $inv['_dgr_investment_postal_code'][0] ) ? $inv['_dgr_investment_postal_code'][0] : '',
+					$this->unit_type_label( isset( $m['_dgr_unit_type'][0] ) ? $m['_dgr_unit_type'][0] : 'lokal_mieszkalny' ),
+					isset( $m['_dgr_unit_id'][0] ) ? $m['_dgr_unit_id'][0] : '',
+					$price_m2_ini, $date_start, $price_m2_now, $date_updated,
+					$price_total_ini, $price_total_now, $date_updated,
+					$price_sale, $date_sale,
+				);
+
+				$accessories = $this->collect_accessories_for_unit( $m );
+				if ( empty( $accessories ) ) {
+					fputcsv( $out, array_merge( $base_row, array( '', '', '' ) ), ';' );
+				} else {
+					foreach ( $accessories as $acc ) {
+						fputcsv( $out, array_merge( $base_row, array( $acc['rodzaj'], $acc['oznaczenie'], $acc['cena'] ) ), ';' );
+					}
+				}
+			}
+
+			$max_pages = $query->max_num_pages;
+			wp_reset_postdata();
+			$page++;
+		} while ( $page <= $max_pages );
+
+		fclose( $out );
+		exit;
+	}
+
+	private function legal_form_label( $key ) {
+		$map = array(
+			'sp_z_oo' => 'Spółka z o.o.', 'sa' => 'Spółka akcyjna',
+			'sp_j' => 'Spółka jawna', 'sp_k' => 'Spółka komandytowa',
+			'sp_ka' => 'Spółka komandytowo-akcyjna', 'sp_p' => 'Spółka partnerska',
+			'dzial_gosp' => 'Działalność gospodarcza', 'inna' => 'Inna',
+		);
+		return isset( $map[ $key ] ) ? $map[ $key ] : '';
+	}
+
+	private function unit_type_label( $key ) {
+		return 'dom_jednorodzinny' === $key ? 'dom jednorodzinny' : 'lokal mieszkalny';
+	}
+
+	private function collect_accessories_for_unit( $meta ) {
+		$items = array();
+
+		if ( ! empty( $meta['_dgr_unit_garage_number'][0] ) || ! empty( $meta['_dgr_unit_garage_price_brutto'][0] ) ) {
+			$items[] = array(
+				'rodzaj'     => 'garaż',
+				'oznaczenie' => isset( $meta['_dgr_unit_garage_number'][0] ) ? $meta['_dgr_unit_garage_number'][0] : '',
+				'cena'       => isset( $meta['_dgr_unit_garage_price_brutto'][0] ) ? $meta['_dgr_unit_garage_price_brutto'][0] : '',
+			);
+		}
+
+		if ( ! empty( $meta['_dgr_unit_storage_number'][0] ) || ! empty( $meta['_dgr_unit_storage_price_brutto'][0] ) ) {
+			$items[] = array(
+				'rodzaj'     => 'komórka lokatorska',
+				'oznaczenie' => isset( $meta['_dgr_unit_storage_number'][0] ) ? $meta['_dgr_unit_storage_number'][0] : '',
+				'cena'       => isset( $meta['_dgr_unit_storage_price_brutto'][0] ) ? $meta['_dgr_unit_storage_price_brutto'][0] : '',
+			);
+		}
+
+		// Legacy JSON dependencies (miejsce_postojowe etc.)
+		$deps_raw = isset( $meta['_dgr_unit_dependencies'][0] ) ? $meta['_dgr_unit_dependencies'][0] : '';
+		if ( $deps_raw ) {
+			$decoded = json_decode( $deps_raw, true );
+			if ( is_array( $decoded ) ) {
+				foreach ( $decoded as $d ) {
+					if ( isset( $d['typ'] ) && isset( $d['cena'] ) ) {
+						$items[] = array(
+							'rodzaj'     => str_replace( '_', ' ', (string) $d['typ'] ),
+							'oznaczenie' => isset( $d['oznaczenie'] ) ? (string) $d['oznaczenie'] : '',
+							'cena'       => floatval( $d['cena'] ),
+						);
+					}
+				}
+			}
+		}
+
+		return $items;
 	}
 
 	/**

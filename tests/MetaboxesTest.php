@@ -29,10 +29,16 @@ class MetaboxesTest extends DGR_TestCase {
 
     public function test_save_investment_meta(): void {
         $_POST = [
-            'dgr_investment_nonce'   => 'valid',
-            'dgr_investment_address' => 'ul. Testowa 1, Warszawa',
-            'dgr_investment_id'      => 'INW-001',
-            'dgr_investment_nip'     => '1234567890',
+            'dgr_investment_nonce'           => 'valid',
+            'dgr_investment_id'              => 'INW-001',
+            'dgr_investment_nip'             => '1234567890',
+            'dgr_investment_voivodeship'     => 'mazowieckie',
+            'dgr_investment_county'          => 'warszawski',
+            'dgr_investment_commune'         => 'Warszawa',
+            'dgr_investment_city'            => 'Warszawa',
+            'dgr_investment_street'          => 'Testowa',
+            'dgr_investment_building_number' => '1',
+            'dgr_investment_postal_code'     => '00-001',
         ];
 
         Functions\when( 'wp_verify_nonce' )->justReturn( true );
@@ -46,16 +52,17 @@ class MetaboxesTest extends DGR_TestCase {
 
         $this->metaboxes->save_meta_boxes( 100 );
 
-        $this->assertArrayHasKey( '_dgr_investment_address', $saved );
-        $this->assertEquals( 'ul. Testowa 1, Warszawa', $saved['_dgr_investment_address'] );
         $this->assertEquals( 'INW-001', $saved['_dgr_investment_id'] );
         $this->assertEquals( '1234567890', $saved['_dgr_investment_nip'] );
+        $this->assertEquals( 'mazowieckie', $saved['_dgr_investment_voivodeship'] );
+        $this->assertEquals( 'Warszawa', $saved['_dgr_investment_city'] );
+        $this->assertEquals( '00-001', $saved['_dgr_investment_postal_code'] );
     }
 
     public function test_save_investment_blocked_without_permission(): void {
         $_POST = [
-            'dgr_investment_nonce'   => 'valid',
-            'dgr_investment_address' => 'ul. Testowa 1',
+            'dgr_investment_nonce'       => 'valid',
+            'dgr_investment_voivodeship' => 'mazowieckie',
         ];
 
         Functions\when( 'wp_verify_nonce' )->justReturn( true );
