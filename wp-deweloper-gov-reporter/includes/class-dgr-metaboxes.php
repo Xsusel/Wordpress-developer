@@ -235,6 +235,7 @@ class DGR_Metaboxes {
 		<h4><?php esc_html_e( 'Shortcodes dla tego lokalu', 'wp-deweloper-gov-reporter' ); ?></h4>
 		<p><small><?php esc_html_e( 'Skopiuj i wklej na stronę (Elementor lub edytor):', 'wp-deweloper-gov-reporter' ); ?></small></p>
 		<code style="display:block;background:#f1f1f1;padding:8px;margin:4px 0;font-size:12px;">[dgr_lokal_karta id="<?php echo esc_attr( $post->ID ); ?>"]</code>
+		<code style="display:block;background:#f1f1f1;padding:8px;margin:4px 0;font-size:12px;">[dgr_lokal_karta_full id="<?php echo esc_attr( $post->ID ); ?>"]</code>
 		<code style="display:block;background:#f1f1f1;padding:8px;margin:4px 0;font-size:12px;">[dgr_lokal_cena id="<?php echo esc_attr( $post->ID ); ?>" typ="deweloperski" vat="brutto"]</code>
 		<code style="display:block;background:#f1f1f1;padding:8px;margin:4px 0;font-size:12px;">[dgr_lokal_cena id="<?php echo esc_attr( $post->ID ); ?>" typ="surowy" vat="netto"]</code>
 		<code style="display:block;background:#f1f1f1;padding:8px;margin:4px 0;font-size:12px;">[dgr_lokal_metraz id="<?php echo esc_attr( $post->ID ); ?>"]</code>

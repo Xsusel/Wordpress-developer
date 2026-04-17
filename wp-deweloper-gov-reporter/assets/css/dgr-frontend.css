@@ -251,6 +251,69 @@
     color: #999;
 }
 
+/* Full Property Card - [dgr_lokal_karta_full] */
+.dgr-lokal-karta--full .dgr-lokal-karta__header {
+    justify-content: space-between;
+}
+
+.dgr-lokal-karta__specs {
+    list-style: none;
+    margin: 0 0 16px 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px 16px;
+}
+
+.dgr-lokal-karta__specs li {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.92em;
+}
+
+.dgr-lokal-karta__spec-label {
+    color: #777;
+    font-weight: 500;
+}
+
+.dgr-lokal-karta__spec-value {
+    color: #222;
+    font-weight: 600;
+    text-align: right;
+}
+
+.dgr-lokal-karta__extras {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.dgr-lokal-karta__extra {
+    flex: 1 1 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.dgr-lokal-karta__extra-label {
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    font-weight: 600;
+}
+
+.dgr-lokal-karta__extra-value {
+    font-size: 0.95em;
+    color: #333;
+    font-weight: 500;
+}
+
 /* Inline shortcode elements */
 .dgr-lokal-cena {
     font-weight: 700;
