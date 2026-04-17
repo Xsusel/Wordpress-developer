@@ -630,7 +630,17 @@ class DGR_Public {
 
 		$parent_id       = intval( $get( '_dgr_unit_parent_investment' ) );
 		$investment_name = $parent_id ? get_the_title( $parent_id ) : '';
+		$investment_addr = '';
+		if ( $parent_id ) {
+			$inv = get_post_meta( $parent_id );
+			$street  = isset( $inv['_dgr_investment_street'][0] ) ? $inv['_dgr_investment_street'][0] : '';
+			$bldg    = isset( $inv['_dgr_investment_building_number'][0] ) ? $inv['_dgr_investment_building_number'][0] : '';
+			$city    = isset( $inv['_dgr_investment_city'][0] ) ? $inv['_dgr_investment_city'][0] : '';
+			$parts   = array_filter( array( trim( $street . ' ' . $bldg ), $city ) );
+			$investment_addr = implode( ', ', $parts );
+		}
 		$unit_id         = $get( '_dgr_unit_id' );
+		$unit_type       = $get( '_dgr_unit_type' );
 		$location        = $get( '_dgr_unit_location_label' );
 		$area            = floatval( $get( '_dgr_unit_area' ) );
 		$rooms           = $get( '_dgr_unit_rooms' );
@@ -687,6 +697,14 @@ class DGR_Public {
 			<ul class="dgr-lokal-karta__specs">
 				<?php if ( $investment_name ) : ?>
 					<li><span class="dgr-lokal-karta__spec-label"><?php esc_html_e( 'Inwestycja', 'wp-deweloper-gov-reporter' ); ?></span><span class="dgr-lokal-karta__spec-value"><?php echo esc_html( $investment_name ); ?></span></li>
+				<?php endif; ?>
+				<?php if ( $investment_addr ) : ?>
+					<li><span class="dgr-lokal-karta__spec-label"><?php esc_html_e( 'Adres', 'wp-deweloper-gov-reporter' ); ?></span><span class="dgr-lokal-karta__spec-value"><?php echo esc_html( $investment_addr ); ?></span></li>
+				<?php endif; ?>
+				<?php if ( $unit_type ) :
+					$type_labels = array( 'lokal_mieszkalny' => __( 'Lokal mieszkalny', 'wp-deweloper-gov-reporter' ), 'dom_jednorodzinny' => __( 'Dom jednorodzinny', 'wp-deweloper-gov-reporter' ) );
+				?>
+					<li><span class="dgr-lokal-karta__spec-label"><?php esc_html_e( 'Rodzaj', 'wp-deweloper-gov-reporter' ); ?></span><span class="dgr-lokal-karta__spec-value"><?php echo esc_html( isset( $type_labels[ $unit_type ] ) ? $type_labels[ $unit_type ] : $unit_type ); ?></span></li>
 				<?php endif; ?>
 				<?php if ( '' !== $unit_id ) : ?>
 					<li><span class="dgr-lokal-karta__spec-label"><?php esc_html_e( 'Nr lokalu', 'wp-deweloper-gov-reporter' ); ?></span><span class="dgr-lokal-karta__spec-value"><?php echo esc_html( $unit_id ); ?></span></li>

@@ -34,23 +34,70 @@ class DGR_Metaboxes {
 	public function render_investment_metabox( $post ) {
 		wp_nonce_field( 'dgr_save_investment_data', 'dgr_investment_nonce' );
 
-		$address = get_post_meta( $post->ID, '_dgr_investment_address', true );
-		$gov_id  = get_post_meta( $post->ID, '_dgr_investment_id', true );
-		$nip     = get_post_meta( $post->ID, '_dgr_investment_nip', true );
+		$gov_id         = get_post_meta( $post->ID, '_dgr_investment_id', true );
+		$nip            = get_post_meta( $post->ID, '_dgr_investment_nip', true );
+		$voivodeship    = get_post_meta( $post->ID, '_dgr_investment_voivodeship', true );
+		$county         = get_post_meta( $post->ID, '_dgr_investment_county', true );
+		$commune        = get_post_meta( $post->ID, '_dgr_investment_commune', true );
+		$city           = get_post_meta( $post->ID, '_dgr_investment_city', true );
+		$street         = get_post_meta( $post->ID, '_dgr_investment_street', true );
+		$building_no    = get_post_meta( $post->ID, '_dgr_investment_building_number', true );
+		$postal_code    = get_post_meta( $post->ID, '_dgr_investment_postal_code', true );
+
+		$voivodeships = array(
+			'dolnośląskie', 'kujawsko-pomorskie', 'lubelskie', 'lubuskie', 'łódzkie',
+			'małopolskie', 'mazowieckie', 'opolskie', 'podkarpackie', 'podlaskie',
+			'pomorskie', 'śląskie', 'świętokrzyskie', 'warmińsko-mazurskie',
+			'wielkopolskie', 'zachodniopomorskie',
+		);
 		?>
-		<p>
-			<label for="dgr_investment_address"><?php esc_html_e( 'Adres', 'wp-deweloper-gov-reporter' ); ?></label>
-			<input type="text" id="dgr_investment_address" name="dgr_investment_address" value="<?php echo esc_attr( $address ); ?>" class="widefat">
-		</p>
 		<p>
 			<label for="dgr_investment_id"><?php esc_html_e( 'ID Inwestycji (gov)', 'wp-deweloper-gov-reporter' ); ?></label>
 			<input type="text" id="dgr_investment_id" name="dgr_investment_id" value="<?php echo esc_attr( $gov_id ); ?>" class="widefat">
 			<small><?php esc_html_e( 'Identyfikator nadany przez urząd.', 'wp-deweloper-gov-reporter' ); ?></small>
 		</p>
 		<p>
-			<label for="dgr_investment_nip"><?php esc_html_e( 'NIP Dewelopera', 'wp-deweloper-gov-reporter' ); ?></label>
+			<label for="dgr_investment_nip"><?php esc_html_e( 'NIP Dewelopera (inwestycji)', 'wp-deweloper-gov-reporter' ); ?></label>
 			<input type="text" id="dgr_investment_nip" name="dgr_investment_nip" value="<?php echo esc_attr( $nip ); ?>" class="widefat" pattern="[0-9]{10}" title="<?php esc_attr_e( 'NIP: 10 cyfr', 'wp-deweloper-gov-reporter' ); ?>">
 		</p>
+
+		<hr>
+		<h4 style="margin-bottom:5px;"><?php esc_html_e( 'Lokalizacja inwestycji (wymagane przez ustawę)', 'wp-deweloper-gov-reporter' ); ?></h4>
+		<div style="display:flex;gap:15px;flex-wrap:wrap;">
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_investment_voivodeship"><?php esc_html_e( 'Województwo', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
+				<select id="dgr_investment_voivodeship" name="dgr_investment_voivodeship" class="widefat">
+					<option value=""><?php esc_html_e( '— wybierz —', 'wp-deweloper-gov-reporter' ); ?></option>
+					<?php foreach ( $voivodeships as $v ) : ?>
+						<option value="<?php echo esc_attr( $v ); ?>" <?php selected( $voivodeship, $v ); ?>><?php echo esc_html( $v ); ?></option>
+					<?php endforeach; ?>
+				</select>
+			</p>
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_investment_county"><?php esc_html_e( 'Powiat', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
+				<input type="text" id="dgr_investment_county" name="dgr_investment_county" value="<?php echo esc_attr( $county ); ?>" class="widefat">
+			</p>
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_investment_commune"><?php esc_html_e( 'Gmina', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
+				<input type="text" id="dgr_investment_commune" name="dgr_investment_commune" value="<?php echo esc_attr( $commune ); ?>" class="widefat">
+			</p>
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_investment_city"><?php esc_html_e( 'Miejscowość', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
+				<input type="text" id="dgr_investment_city" name="dgr_investment_city" value="<?php echo esc_attr( $city ); ?>" class="widefat">
+			</p>
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_investment_street"><?php esc_html_e( 'Ulica', 'wp-deweloper-gov-reporter' ); ?></label>
+				<input type="text" id="dgr_investment_street" name="dgr_investment_street" value="<?php echo esc_attr( $street ); ?>" class="widefat">
+			</p>
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_investment_building_number"><?php esc_html_e( 'Nr nieruchomości', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
+				<input type="text" id="dgr_investment_building_number" name="dgr_investment_building_number" value="<?php echo esc_attr( $building_no ); ?>" class="widefat">
+			</p>
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_investment_postal_code"><?php esc_html_e( 'Kod pocztowy', 'wp-deweloper-gov-reporter' ); ?></label>
+				<input type="text" id="dgr_investment_postal_code" name="dgr_investment_postal_code" value="<?php echo esc_attr( $postal_code ); ?>" class="widefat" pattern="[0-9]{2}-[0-9]{3}" placeholder="00-000">
+			</p>
+		</div>
 		<?php
 	}
 
@@ -83,6 +130,15 @@ class DGR_Metaboxes {
 		$price_developer_netto   = get_post_meta( $post->ID, '_dgr_unit_price_developer_netto', true );
 		$price_developer_brutto  = get_post_meta( $post->ID, '_dgr_unit_price_developer_brutto', true );
 
+		// Ustawa deweloperska
+		$unit_type           = get_post_meta( $post->ID, '_dgr_unit_type', true );
+		if ( '' === $unit_type ) $unit_type = 'lokal_mieszkalny';
+		$price_total_initial = get_post_meta( $post->ID, '_dgr_unit_price_total_initial', true );
+		$price_m2_initial    = get_post_meta( $post->ID, '_dgr_unit_price_m2_initial', true );
+		$sale_start_date     = get_post_meta( $post->ID, '_dgr_unit_sale_start_date', true );
+		$sale_date           = get_post_meta( $post->ID, '_dgr_unit_sale_date', true );
+		$price_sale_brutto   = get_post_meta( $post->ID, '_dgr_unit_price_sale_brutto', true );
+
 		$investments = get_posts( array(
 			'post_type'      => 'dgr_investment',
 			'posts_per_page' => -1,
@@ -98,10 +154,19 @@ class DGR_Metaboxes {
 				<?php endforeach; ?>
 			</select>
 		</p>
-		<p>
-			<label for="dgr_unit_id"><?php esc_html_e( 'Numer Lokalu / ID', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
-			<input type="text" id="dgr_unit_id" name="dgr_unit_id" value="<?php echo esc_attr( $unit_id ); ?>" class="widefat" required>
-		</p>
+		<div style="display:flex;gap:15px;flex-wrap:wrap;">
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_unit_type"><?php esc_html_e( 'Rodzaj', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
+				<select id="dgr_unit_type" name="dgr_unit_type" class="widefat" required>
+					<option value="lokal_mieszkalny" <?php selected( $unit_type, 'lokal_mieszkalny' ); ?>><?php esc_html_e( 'Lokal mieszkalny', 'wp-deweloper-gov-reporter' ); ?></option>
+					<option value="dom_jednorodzinny" <?php selected( $unit_type, 'dom_jednorodzinny' ); ?>><?php esc_html_e( 'Dom jednorodzinny', 'wp-deweloper-gov-reporter' ); ?></option>
+				</select>
+			</p>
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_unit_id"><?php esc_html_e( 'Numer Lokalu / ID', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
+				<input type="text" id="dgr_unit_id" name="dgr_unit_id" value="<?php echo esc_attr( $unit_id ); ?>" class="widefat" required>
+			</p>
+		</div>
 		<p>
 			<label for="dgr_unit_location_label"><?php esc_html_e( 'Lokalizacja (etykieta)', 'wp-deweloper-gov-reporter' ); ?></label>
 			<input type="text" id="dgr_unit_location_label" name="dgr_unit_location_label" value="<?php echo esc_attr( $location_label ); ?>" class="widefat" placeholder="<?php esc_attr_e( 'np. BOLMIN (25 KM OD KIELC)', 'wp-deweloper-gov-reporter' ); ?>">
@@ -209,6 +274,37 @@ class DGR_Metaboxes {
 			<p style="flex:1;min-width:200px;">
 				<label for="dgr_unit_storage_price_brutto"><?php esc_html_e( 'Cena brutto komórki (PLN)', 'wp-deweloper-gov-reporter' ); ?></label>
 				<input type="number" min="0" step="0.01" id="dgr_unit_storage_price_brutto" name="dgr_unit_storage_price_brutto" value="<?php echo esc_attr( $storage_price_brutto ); ?>" class="widefat">
+			</p>
+		</div>
+
+		<hr>
+		<h4 style="margin-bottom:5px;"><?php esc_html_e( 'Dane wymagane przez ustawę (art. 19b)', 'wp-deweloper-gov-reporter' ); ?></h4>
+		<div style="display:flex;gap:15px;flex-wrap:wrap;">
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_unit_sale_start_date"><?php esc_html_e( 'Data rozpoczęcia sprzedaży', 'wp-deweloper-gov-reporter' ); ?></label>
+				<input type="date" id="dgr_unit_sale_start_date" name="dgr_unit_sale_start_date" value="<?php echo esc_attr( $sale_start_date ); ?>" class="widefat">
+				<small style="color:#888;"><?php esc_html_e( 'Auto-uzupełniana przy pierwszym zapisie.', 'wp-deweloper-gov-reporter' ); ?></small>
+			</p>
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_unit_price_total_initial"><?php esc_html_e( 'Cena całkowita z dnia rozpoczęcia sprzedaży (PLN brutto)', 'wp-deweloper-gov-reporter' ); ?></label>
+				<input type="number" step="0.01" min="0" id="dgr_unit_price_total_initial" name="dgr_unit_price_total_initial" value="<?php echo esc_attr( $price_total_initial ); ?>" class="widefat">
+				<small style="color:#888;"><?php esc_html_e( 'Auto-uzupełniana przy pierwszym zapisie.', 'wp-deweloper-gov-reporter' ); ?></small>
+			</p>
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_unit_price_m2_initial"><?php esc_html_e( 'Cena m² z dnia rozpoczęcia sprzedaży (PLN brutto)', 'wp-deweloper-gov-reporter' ); ?></label>
+				<input type="number" step="0.01" min="0" id="dgr_unit_price_m2_initial" name="dgr_unit_price_m2_initial" value="<?php echo esc_attr( $price_m2_initial ); ?>" class="widefat">
+				<small style="color:#888;"><?php esc_html_e( 'Auto-uzupełniana przy pierwszym zapisie.', 'wp-deweloper-gov-reporter' ); ?></small>
+			</p>
+		</div>
+		<div style="display:flex;gap:15px;flex-wrap:wrap;">
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_unit_sale_date"><?php esc_html_e( 'Data sprzedaży', 'wp-deweloper-gov-reporter' ); ?></label>
+				<input type="date" id="dgr_unit_sale_date" name="dgr_unit_sale_date" value="<?php echo esc_attr( $sale_date ); ?>" class="widefat">
+				<small style="color:#888;"><?php esc_html_e( 'Wypełnij przy statusie "sprzedany".', 'wp-deweloper-gov-reporter' ); ?></small>
+			</p>
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_unit_price_sale_brutto"><?php esc_html_e( 'Cena sprzedaży (PLN brutto)', 'wp-deweloper-gov-reporter' ); ?></label>
+				<input type="number" step="0.01" min="0" id="dgr_unit_price_sale_brutto" name="dgr_unit_price_sale_brutto" value="<?php echo esc_attr( $price_sale_brutto ); ?>" class="widefat">
 			</p>
 		</div>
 
@@ -344,7 +440,17 @@ class DGR_Metaboxes {
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
 			if ( ! current_user_can( 'edit_post', $post_id ) ) return;
 
-			$fields = array( 'dgr_investment_address', 'dgr_investment_id', 'dgr_investment_nip' );
+			$fields = array(
+				'dgr_investment_id',
+				'dgr_investment_nip',
+				'dgr_investment_voivodeship',
+				'dgr_investment_county',
+				'dgr_investment_commune',
+				'dgr_investment_city',
+				'dgr_investment_street',
+				'dgr_investment_building_number',
+				'dgr_investment_postal_code',
+			);
 			foreach ( $fields as $field ) {
 				if ( isset( $_POST[ $field ] ) ) {
 					update_post_meta( $post_id, '_' . $field, sanitize_text_field( $_POST[ $field ] ) );
@@ -373,6 +479,24 @@ class DGR_Metaboxes {
 				}
 			}
 
+			// Rodzaj lokalu (whitelist)
+			if ( isset( $_POST['dgr_unit_type'] ) ) {
+				$type = sanitize_key( $_POST['dgr_unit_type'] );
+				if ( in_array( $type, array( 'lokal_mieszkalny', 'dom_jednorodzinny' ), true ) ) {
+					update_post_meta( $post_id, '_dgr_unit_type', $type );
+				}
+			}
+
+			// Date fields (Y-m-d)
+			foreach ( array( 'dgr_unit_sale_start_date', 'dgr_unit_sale_date' ) as $date_field ) {
+				if ( isset( $_POST[ $date_field ] ) ) {
+					$date = sanitize_text_field( $_POST[ $date_field ] );
+					if ( '' === $date || preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date ) ) {
+						update_post_meta( $post_id, '_' . $date_field, $date );
+					}
+				}
+			}
+
 			// Numeric fields - validate as positive numbers
 			$numeric_fields = array(
 				'dgr_unit_price_total'           => 0.01,
@@ -387,6 +511,9 @@ class DGR_Metaboxes {
 				'dgr_unit_balconies_area'        => 0,
 				'dgr_unit_garage_price_brutto'   => 0,
 				'dgr_unit_storage_price_brutto'  => 0,
+				'dgr_unit_price_total_initial'   => 0,
+				'dgr_unit_price_m2_initial'      => 0,
+				'dgr_unit_price_sale_brutto'     => 0,
 			);
 
 			foreach ( $numeric_fields as $field => $min ) {
@@ -415,6 +542,24 @@ class DGR_Metaboxes {
 					} else {
 						delete_post_meta( $post_id, $m2_key );
 					}
+				}
+			}
+
+			// Auto-populate initial price + sale start date on first save (ustawa deweloperska)
+			$current_price_total = floatval( get_post_meta( $post_id, '_dgr_unit_price_total', true ) );
+			$current_price_m2    = floatval( get_post_meta( $post_id, '_dgr_unit_price_m2', true ) );
+			if ( $current_price_total > 0 ) {
+				$initial_total = get_post_meta( $post_id, '_dgr_unit_price_total_initial', true );
+				if ( '' === $initial_total || floatval( $initial_total ) <= 0 ) {
+					update_post_meta( $post_id, '_dgr_unit_price_total_initial', $current_price_total );
+				}
+				$initial_m2 = get_post_meta( $post_id, '_dgr_unit_price_m2_initial', true );
+				if ( ( '' === $initial_m2 || floatval( $initial_m2 ) <= 0 ) && $current_price_m2 > 0 ) {
+					update_post_meta( $post_id, '_dgr_unit_price_m2_initial', $current_price_m2 );
+				}
+				$sale_start = get_post_meta( $post_id, '_dgr_unit_sale_start_date', true );
+				if ( '' === $sale_start ) {
+					update_post_meta( $post_id, '_dgr_unit_sale_start_date', wp_date( 'Y-m-d' ) );
 				}
 			}
 
