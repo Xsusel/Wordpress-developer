@@ -67,6 +67,13 @@ class DGR_Metaboxes {
 		$status            = get_post_meta( $post->ID, '_dgr_unit_status', true );
 		$dependencies      = get_post_meta( $post->ID, '_dgr_unit_dependencies', true );
 
+		$balconies_count        = get_post_meta( $post->ID, '_dgr_unit_balconies_count', true );
+		$balconies_area         = get_post_meta( $post->ID, '_dgr_unit_balconies_area', true );
+		$garage_number          = get_post_meta( $post->ID, '_dgr_unit_garage_number', true );
+		$garage_price_brutto    = get_post_meta( $post->ID, '_dgr_unit_garage_price_brutto', true );
+		$storage_number         = get_post_meta( $post->ID, '_dgr_unit_storage_number', true );
+		$storage_price_brutto   = get_post_meta( $post->ID, '_dgr_unit_storage_price_brutto', true );
+
 		// Pricing fields
 		$location_label          = get_post_meta( $post->ID, '_dgr_unit_location_label', true );
 		$vat_rate                = get_post_meta( $post->ID, '_dgr_unit_vat_rate', true );
@@ -165,6 +172,47 @@ class DGR_Metaboxes {
 			<label for="dgr_unit_floor"><?php esc_html_e( 'Piętro', 'wp-deweloper-gov-reporter' ); ?></label>
 			<input type="number" min="0" id="dgr_unit_floor" name="dgr_unit_floor" value="<?php echo esc_attr( $floor ); ?>" class="widefat">
 		</p>
+
+		<hr>
+		<h4 style="margin-bottom:5px;"><?php esc_html_e( 'Balkony', 'wp-deweloper-gov-reporter' ); ?></h4>
+		<div style="display:flex;gap:15px;flex-wrap:wrap;">
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_unit_balconies_count"><?php esc_html_e( 'Ilość balkonów', 'wp-deweloper-gov-reporter' ); ?></label>
+				<input type="number" min="0" step="1" id="dgr_unit_balconies_count" name="dgr_unit_balconies_count" value="<?php echo esc_attr( $balconies_count ); ?>" class="widefat">
+			</p>
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_unit_balconies_area"><?php esc_html_e( 'Powierzchnia balkonów (m²)', 'wp-deweloper-gov-reporter' ); ?></label>
+				<input type="number" min="0" step="0.01" id="dgr_unit_balconies_area" name="dgr_unit_balconies_area" value="<?php echo esc_attr( $balconies_area ); ?>" class="widefat">
+			</p>
+		</div>
+
+		<hr>
+		<h4 style="margin-bottom:5px;"><?php esc_html_e( 'Garaż', 'wp-deweloper-gov-reporter' ); ?></h4>
+		<div style="display:flex;gap:15px;flex-wrap:wrap;">
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_unit_garage_number"><?php esc_html_e( 'Nr garażu', 'wp-deweloper-gov-reporter' ); ?></label>
+				<input type="text" id="dgr_unit_garage_number" name="dgr_unit_garage_number" value="<?php echo esc_attr( $garage_number ); ?>" class="widefat">
+			</p>
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_unit_garage_price_brutto"><?php esc_html_e( 'Cena brutto garażu (PLN)', 'wp-deweloper-gov-reporter' ); ?></label>
+				<input type="number" min="0" step="0.01" id="dgr_unit_garage_price_brutto" name="dgr_unit_garage_price_brutto" value="<?php echo esc_attr( $garage_price_brutto ); ?>" class="widefat">
+			</p>
+		</div>
+
+		<hr>
+		<h4 style="margin-bottom:5px;"><?php esc_html_e( 'Komórka lokatorska', 'wp-deweloper-gov-reporter' ); ?></h4>
+		<div style="display:flex;gap:15px;flex-wrap:wrap;">
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_unit_storage_number"><?php esc_html_e( 'Nr komórki', 'wp-deweloper-gov-reporter' ); ?></label>
+				<input type="text" id="dgr_unit_storage_number" name="dgr_unit_storage_number" value="<?php echo esc_attr( $storage_number ); ?>" class="widefat">
+			</p>
+			<p style="flex:1;min-width:200px;">
+				<label for="dgr_unit_storage_price_brutto"><?php esc_html_e( 'Cena brutto komórki (PLN)', 'wp-deweloper-gov-reporter' ); ?></label>
+				<input type="number" min="0" step="0.01" id="dgr_unit_storage_price_brutto" name="dgr_unit_storage_price_brutto" value="<?php echo esc_attr( $storage_price_brutto ); ?>" class="widefat">
+			</p>
+		</div>
+
+		<hr>
 		<p>
 			<label for="dgr_unit_status"><?php esc_html_e( 'Status', 'wp-deweloper-gov-reporter' ); ?></label>
 			<select id="dgr_unit_status" name="dgr_unit_status" class="widefat">
@@ -317,7 +365,7 @@ class DGR_Metaboxes {
 			}
 
 			// Text fields
-			$text_fields = array( 'dgr_unit_parent_investment', 'dgr_unit_id', 'dgr_unit_status', 'dgr_unit_location_label' );
+			$text_fields = array( 'dgr_unit_parent_investment', 'dgr_unit_id', 'dgr_unit_status', 'dgr_unit_location_label', 'dgr_unit_garage_number', 'dgr_unit_storage_number' );
 			foreach ( $text_fields as $field ) {
 				if ( isset( $_POST[ $field ] ) ) {
 					update_post_meta( $post_id, '_' . $field, sanitize_text_field( $_POST[ $field ] ) );
@@ -334,6 +382,10 @@ class DGR_Metaboxes {
 				'dgr_unit_price_shell_brutto'    => 0,
 				'dgr_unit_price_developer_netto' => 0,
 				'dgr_unit_price_developer_brutto'=> 0,
+				'dgr_unit_balconies_count'       => 0,
+				'dgr_unit_balconies_area'        => 0,
+				'dgr_unit_garage_price_brutto'   => 0,
+				'dgr_unit_storage_price_brutto'  => 0,
 			);
 
 			foreach ( $numeric_fields as $field => $min ) {
