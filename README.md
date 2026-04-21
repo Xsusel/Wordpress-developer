@@ -229,6 +229,24 @@ Wyswietla tabelke lokali z filtrami AJAX (pokoje, powierzchnia, status).
 |----------|-----------|------|
 | `investment_id` | (wszystkie) | Ogranicz do jednej inwestycji |
 
+### 5.7. Tabela Lokali Inwestycji
+
+```
+[dgr_inwestycja_tabela id="45"]
+[dgr_inwestycja_tabela id="45" orderby="floor" order="ASC"]
+[dgr_inwestycja_tabela id="45" hide_sold="yes" show_details="no"]
+```
+
+Wyswietla tabele ze wszystkimi lokalami jednej inwestycji. Kolumny: Mieszkanie, Pietro, Status, Pokoje, Powierzchnia m², Cena za m², Cena calkowita, Szczegoly (link do lokalu). Umieszczony bez `id` w tresci inwestycji uzyje ID biezacego postu.
+
+| Parametr | Domyslnie | Opis |
+|----------|-----------|------|
+| `id` | ID aktualnego postu | Post ID inwestycji |
+| `orderby` | `unit_id` | Sortowanie: `unit_id`, `floor`, `area`, `rooms`, `price` |
+| `order` | `ASC` | `ASC` lub `DESC` |
+| `hide_sold` | `no` | `yes` ukrywa lokale sprzedane i przekazane |
+| `show_details` | `yes` | `no` ukrywa kolumne z przyciskiem "Szczegoly" |
+
 ---
 
 ## 6. Widgety Elementora
@@ -362,6 +380,7 @@ Shortcody generuja elementy z klasami BEM, ktore mozna nadpisac w motywie:
 * [x] Shortcode `[dgr_lokal_karta]` - karta cenowa (lokalizacja, metraz, ceny netto/brutto).
 * [x] Shortcode `[dgr_lokal_cena]` - pojedyncza cena inline (typ + vat).
 * [x] Shortcode `[dgr_lokal_metraz]` - metraz inline.
+* [x] Shortcode `[dgr_inwestycja_tabela]` - tabela lokali danej inwestycji.
 
 ### Faza 5: Bezpieczenstwo i Optymalizacja
 * [x] Walidacja danych przed generowaniem XML.

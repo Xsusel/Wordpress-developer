@@ -22,6 +22,7 @@ class DGR_Public {
 		add_shortcode( 'dgr_lokal_karta_full', array( $this, 'render_lokal_karta_full' ) );
 		add_shortcode( 'dgr_lokal_cena', array( $this, 'render_lokal_cena' ) );
 		add_shortcode( 'dgr_lokal_metraz', array( $this, 'render_lokal_metraz' ) );
+		add_shortcode( 'dgr_inwestycja_tabela', array( $this, 'render_inwestycja_tabela' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'wp_ajax_dgr_filter_units', array( $this, 'ajax_filter_units' ) );
 		add_action( 'wp_ajax_nopriv_dgr_filter_units', array( $this, 'ajax_filter_units' ) );
@@ -878,5 +879,154 @@ class DGR_Public {
 		}
 
 		return '<span class="dgr-lokal-metraz">' . esc_html( number_format( $area, 2, ',', ' ' ) ) . ' m&sup2;</span>';
+	}
+
+	/**
+	 * Shortcode [dgr_inwestycja_tabela id="123"]
+	 *
+	 * Renders a table with all units belonging to a given investment.
+	 * Columns: Mieszkanie, Piętro, Status, Pokoje, Powierzchnia m², Cena za m², Cena całkowita, Szczegóły.
+	 *
+	 * Attributes:
+	 *   id           – investment post ID (defaults to current post)
+	 *   orderby      – sort units by: unit_id | floor | area | rooms | price (default unit_id)
+	 *   order        – ASC | DESC (default ASC)
+	 *   hide_sold    – yes | no (default no) – hide sold/transferred units
+	 *   show_details – yes | no (default yes) – show "Szczegóły" button column
+	 */
+	public function render_inwestycja_tabela( $atts ) {
+		wp_enqueue_style( 'dgr-frontend-css' );
+
+		$atts = shortcode_atts( array(
+			'id'           => get_the_ID(),
+			'orderby'      => 'unit_id',
+			'order'        => 'ASC',
+			'hide_sold'    => 'no',
+			'show_details' => 'yes',
+		), $atts, 'dgr_inwestycja_tabela' );
+
+		$investment_id = intval( $atts['id'] );
+
+		if ( $investment_id <= 0 || get_post_type( $investment_id ) !== 'dgr_investment' ) {
+			return '<p>' . esc_html__( 'Nie znaleziono inwestycji.', 'wp-deweloper-gov-reporter' ) . '</p>';
+		}
+
+		$orderby_map = array(
+			'unit_id' => array( 'meta_key' => '_dgr_unit_id',          'orderby' => 'meta_value' ),
+			'floor'   => array( 'meta_key' => '_dgr_unit_floor',       'orderby' => 'meta_value_num' ),
+			'area'    => array( 'meta_key' => '_dgr_unit_area',        'orderby' => 'meta_value_num' ),
+			'rooms'   => array( 'meta_key' => '_dgr_unit_rooms',       'orderby' => 'meta_value_num' ),
+			'price'   => array( 'meta_key' => '_dgr_unit_price_total', 'orderby' => 'meta_value_num' ),
+		);
+		$orderby_key = isset( $orderby_map[ $atts['orderby'] ] ) ? $atts['orderby'] : 'unit_id';
+		$order       = strtoupper( $atts['order'] ) === 'DESC' ? 'DESC' : 'ASC';
+
+		$args = array(
+			'post_type'      => 'dgr_unit',
+			'posts_per_page' => -1,
+			'meta_key'       => $orderby_map[ $orderby_key ]['meta_key'],
+			'orderby'        => $orderby_map[ $orderby_key ]['orderby'],
+			'order'          => $order,
+			'meta_query'     => array(
+				array(
+					'key'   => '_dgr_unit_parent_investment',
+					'value' => $investment_id,
+				),
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		if ( ! $query->have_posts() ) {
+			return '<p>' . esc_html__( 'Brak lokali w tej inwestycji.', 'wp-deweloper-gov-reporter' ) . '</p>';
+		}
+
+		$status_labels = array(
+			'available'             => __( 'dostępne', 'wp-deweloper-gov-reporter' ),
+			'offer'                 => __( 'oferta specjalna', 'wp-deweloper-gov-reporter' ),
+			'reserved'              => __( 'zarezerwowane', 'wp-deweloper-gov-reporter' ),
+			'reservation_agreement' => __( 'umowa rezerwacyjna', 'wp-deweloper-gov-reporter' ),
+			'developer_agreement'   => __( 'umowa deweloperska', 'wp-deweloper-gov-reporter' ),
+			'sold'                  => __( 'sprzedane', 'wp-deweloper-gov-reporter' ),
+			'transferred'           => __( 'przekazane', 'wp-deweloper-gov-reporter' ),
+		);
+
+		$hide_sold    = ( $atts['hide_sold'] === 'yes' );
+		$show_details = ( $atts['show_details'] !== 'no' );
+
+		ob_start();
+		?>
+		<div class="dgr-inwestycja-tabela-wrapper">
+			<table class="dgr-table dgr-inwestycja-tabela">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'Mieszkanie', 'wp-deweloper-gov-reporter' ); ?></th>
+						<th style="text-align: center;"><?php esc_html_e( 'Piętro', 'wp-deweloper-gov-reporter' ); ?></th>
+						<th style="text-align: center;"><?php esc_html_e( 'Status', 'wp-deweloper-gov-reporter' ); ?></th>
+						<th style="text-align: center;"><?php esc_html_e( 'Pokoje', 'wp-deweloper-gov-reporter' ); ?></th>
+						<th style="text-align: right;"><?php esc_html_e( 'Powierzchnia lokalu m²', 'wp-deweloper-gov-reporter' ); ?></th>
+						<th style="text-align: right;"><?php esc_html_e( 'Cena za m²', 'wp-deweloper-gov-reporter' ); ?></th>
+						<th style="text-align: right;"><?php esc_html_e( 'Cena całkowita', 'wp-deweloper-gov-reporter' ); ?></th>
+						<?php if ( $show_details ) : ?>
+							<th style="text-align: center;"><?php esc_html_e( 'Szczegóły', 'wp-deweloper-gov-reporter' ); ?></th>
+						<?php endif; ?>
+					</tr>
+				</thead>
+				<tbody>
+					<?php while ( $query->have_posts() ) : $query->the_post();
+						$pid    = get_the_ID();
+						$meta   = get_post_meta( $pid );
+						$unit_id     = isset( $meta['_dgr_unit_id'][0] ) ? $meta['_dgr_unit_id'][0] : '';
+						$floor       = isset( $meta['_dgr_unit_floor'][0] ) ? $meta['_dgr_unit_floor'][0] : '';
+						$status      = isset( $meta['_dgr_unit_status'][0] ) ? $meta['_dgr_unit_status'][0] : '';
+						$rooms       = isset( $meta['_dgr_unit_rooms'][0] ) ? $meta['_dgr_unit_rooms'][0] : '';
+						$area        = isset( $meta['_dgr_unit_area'][0] ) ? floatval( $meta['_dgr_unit_area'][0] ) : 0;
+						$price_total = isset( $meta['_dgr_unit_price_total'][0] ) ? floatval( $meta['_dgr_unit_price_total'][0] ) : 0;
+						$price_m2    = isset( $meta['_dgr_unit_price_m2'][0] ) ? floatval( $meta['_dgr_unit_price_m2'][0] ) : 0;
+
+						if ( $price_m2 <= 0 && $price_total > 0 && $area > 0 ) {
+							$price_m2 = $price_total / $area;
+						}
+
+						if ( $hide_sold && in_array( $status, array( 'sold', 'transferred' ), true ) ) {
+							continue;
+						}
+
+						$status_label = isset( $status_labels[ $status ] ) ? $status_labels[ $status ] : $status;
+						$status_class = $status ? 'status-' . sanitize_html_class( $status ) : '';
+						$display_name = '' !== $unit_id ? $unit_id : get_the_title();
+					?>
+						<tr>
+							<td><?php echo esc_html( $display_name ); ?></td>
+							<td style="text-align: center;"><?php echo '' !== $floor ? esc_html( $floor ) : '—'; ?></td>
+							<td style="text-align: center;">
+								<?php if ( $status ) : ?>
+									<span class="dgr-status-badge <?php echo esc_attr( $status_class ); ?>"><?php echo esc_html( $status_label ); ?></span>
+								<?php else : ?>
+									—
+								<?php endif; ?>
+							</td>
+							<td style="text-align: center;"><?php echo '' !== $rooms ? esc_html( $rooms ) : '—'; ?></td>
+							<td style="text-align: right;">
+								<?php echo $area > 0 ? esc_html( number_format( $area, 2, ',', ' ' ) ) . ' m²' : '—'; ?>
+							</td>
+							<td style="text-align: right;">
+								<?php echo $price_m2 > 0 ? esc_html( number_format( $price_m2, 2, ',', ' ' ) ) . ' zł' : '—'; ?>
+							</td>
+							<td style="text-align: right;">
+								<?php echo $price_total > 0 ? esc_html( number_format( $price_total, 2, ',', ' ' ) ) . ' zł' : '—'; ?>
+							</td>
+							<?php if ( $show_details ) : ?>
+								<td style="text-align: center;">
+									<a class="dgr-details-btn" href="<?php echo esc_url( get_permalink( $pid ) ); ?>"><?php esc_html_e( 'Szczegóły', 'wp-deweloper-gov-reporter' ); ?></a>
+								</td>
+							<?php endif; ?>
+						</tr>
+					<?php endwhile; wp_reset_postdata(); ?>
+				</tbody>
+			</table>
+		</div>
+		<?php
+		return ob_get_clean();
 	}
 }
