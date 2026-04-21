@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WP Deweloper Gov Reporter
  * Description: Generuje codzienne raporty XML z cenami mieszkań zgodnie z wymogami ustawy deweloperskiej (od 11.07.2025). Pliki XML i MD5 serwowane na stałych URL do pobierania przez dane.gov.pl. Obsługuje Elementora.
- * Version: 2.0.0
+ * Version: 2.1.0
  * Author: Jakub Wcisło
  * Text Domain: wp-deweloper-gov-reporter
  */
@@ -29,7 +29,7 @@ class WP_Deweloper_Gov_Reporter {
 
 	private function __construct() {
 		$this->plugin_name = 'wp-deweloper-gov-reporter';
-		$this->version     = '2.0.0';
+		$this->version     = '2.1.0';
 
 		$this->load_dependencies();
 		$this->set_locale();
