@@ -999,27 +999,27 @@ class DGR_Public {
 						$display_name = '' !== $unit_id ? $unit_id : get_the_title();
 					?>
 						<tr>
-							<td><?php echo esc_html( $display_name ); ?></td>
-							<td style="text-align: center;"><?php echo '' !== $floor ? esc_html( $floor ) : '—'; ?></td>
-							<td style="text-align: center;">
+							<td data-label="<?php esc_attr_e( 'Mieszkanie', 'wp-deweloper-gov-reporter' ); ?>"><?php echo esc_html( $display_name ); ?></td>
+							<td data-label="<?php esc_attr_e( 'Piętro', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: center;"><?php echo '' !== $floor ? esc_html( $floor ) : '—'; ?></td>
+							<td data-label="<?php esc_attr_e( 'Status', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: center;">
 								<?php if ( $status ) : ?>
 									<span class="dgr-status-badge <?php echo esc_attr( $status_class ); ?>"><?php echo esc_html( $status_label ); ?></span>
 								<?php else : ?>
 									—
 								<?php endif; ?>
 							</td>
-							<td style="text-align: center;"><?php echo '' !== $rooms ? esc_html( $rooms ) : '—'; ?></td>
-							<td style="text-align: right;">
+							<td data-label="<?php esc_attr_e( 'Pokoje', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: center;"><?php echo '' !== $rooms ? esc_html( $rooms ) : '—'; ?></td>
+							<td data-label="<?php esc_attr_e( 'Powierzchnia', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: right;">
 								<?php echo $area > 0 ? esc_html( number_format( $area, 2, ',', ' ' ) ) . ' m²' : '—'; ?>
 							</td>
-							<td style="text-align: right;">
+							<td data-label="<?php esc_attr_e( 'Cena za m²', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: right;">
 								<?php echo $price_m2 > 0 ? esc_html( number_format( $price_m2, 2, ',', ' ' ) ) . ' zł' : '—'; ?>
 							</td>
-							<td style="text-align: right;">
+							<td data-label="<?php esc_attr_e( 'Cena całkowita', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: right;">
 								<?php echo $price_total > 0 ? esc_html( number_format( $price_total, 2, ',', ' ' ) ) . ' zł' : '—'; ?>
 							</td>
 							<?php if ( $show_details ) : ?>
-								<td style="text-align: center;">
+								<td data-label="<?php esc_attr_e( 'Szczegóły', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: center;">
 									<a class="dgr-details-btn" href="<?php echo esc_url( $details_url ); ?>"><?php esc_html_e( 'Szczegóły', 'wp-deweloper-gov-reporter' ); ?></a>
 								</td>
 							<?php endif; ?>

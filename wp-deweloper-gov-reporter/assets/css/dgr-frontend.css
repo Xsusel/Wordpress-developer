@@ -371,12 +371,12 @@
 
 /* Investment Table - [dgr_inwestycja_tabela] */
 .dgr-inwestycja-tabela-wrapper {
-    overflow-x: auto;
     margin-bottom: 24px;
 }
 
 .dgr-inwestycja-tabela {
-    min-width: 700px;
+    font-family: inherit;
+    color: inherit;
 }
 
 .dgr-inwestycja-tabela th {
@@ -408,11 +408,117 @@
     color: #fff !important;
 }
 
+/* Investment table - mobile: stack rows as cards */
+@media (max-width: 782px) {
+    .dgr-inwestycja-tabela {
+        display: block;
+    }
+
+    .dgr-inwestycja-tabela thead {
+        display: none;
+    }
+
+    .dgr-inwestycja-tabela tbody,
+    .dgr-inwestycja-tabela tr {
+        display: block;
+        width: 100%;
+    }
+
+    .dgr-inwestycja-tabela tr {
+        margin-bottom: 14px;
+        padding: 10px 14px;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .dgr-inwestycja-tabela td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid #f2f2f2;
+        text-align: right !important;
+        white-space: normal;
+    }
+
+    .dgr-inwestycja-tabela td:last-child {
+        border-bottom: none;
+    }
+
+    .dgr-inwestycja-tabela td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #555;
+        text-align: left;
+        flex: 0 0 45%;
+    }
+
+    .dgr-inwestycja-tabela td .dgr-details-btn {
+        width: 100%;
+        text-align: center;
+        padding: 10px 14px;
+    }
+
+    .dgr-inwestycja-tabela td:has(.dgr-details-btn)::before {
+        display: none;
+    }
+
+    .dgr-inwestycja-tabela td:has(.dgr-details-btn) {
+        justify-content: stretch;
+    }
+}
+
 /* Responsive */
 @media (max-width: 782px) {
     .dgr-lokal-karta--full {
         padding: 20px;
         margin: 16px auto;
+    }
+    .dgr-lokal-karta--full .dgr-lokal-karta__specs {
+        grid-template-columns: 1fr;
+    }
+    .dgr-filter-row {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+    .dgr-filter-row > div {
+        flex: 1 1 auto;
+    }
+    .dgr-filter-row button {
+        width: 100%;
+    }
+    .dgr-related-grid {
+        grid-template-columns: 1fr;
+    }
+    /* Generic dgr-table: turn into stacked cards on mobile for price history too */
+    .dgr-price-history-wrapper .dgr-table,
+    .dgr-price-history-wrapper .dgr-table thead,
+    .dgr-price-history-wrapper .dgr-table tbody,
+    .dgr-price-history-wrapper .dgr-table tr,
+    .dgr-price-history-wrapper .dgr-table td {
+        display: block;
+        width: 100%;
+    }
+    .dgr-price-history-wrapper .dgr-table thead {
+        display: none;
+    }
+    .dgr-price-history-wrapper .dgr-table tr {
+        margin-bottom: 10px;
+        padding: 8px 12px;
+        border: 1px solid #eee;
+        border-radius: 6px;
+    }
+    .dgr-price-history-wrapper .dgr-table td {
+        text-align: right !important;
+        padding: 6px 0;
+        border-bottom: 1px solid #f5f5f5;
+    }
+    .dgr-price-history-wrapper .dgr-table td:last-child {
+        border-bottom: none;
     }
 }
 
@@ -426,7 +532,18 @@
         flex-direction: column;
         gap: 16px;
     }
-    .dgr-lokal-karta--full .dgr-lokal-karta__prices {
+    .dgr-lokal-karta--full {
         padding: 16px;
+    }
+    .dgr-lokal-karta--full .dgr-lokal-karta__prices {
+        padding: 14px;
+    }
+    .dgr-lokal-karta--full .dgr-lokal-karta__price-value {
+        font-size: 1.3em;
+    }
+    .dgr-list li {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
     }
 }
