@@ -237,7 +237,7 @@ Wyswietla tabelke lokali z filtrami AJAX (pokoje, powierzchnia, status).
 [dgr_inwestycja_tabela id="45" hide_sold="yes" show_details="no"]
 ```
 
-Wyswietla tabele ze wszystkimi lokalami jednej inwestycji. Kolumny: Mieszkanie, Pietro, Status, Pokoje, Powierzchnia m², Cena za m², Cena calkowita, Szczegoly (link do lokalu). Umieszczony bez `id` w tresci inwestycji uzyje ID biezacego postu.
+Wyswietla tabele ze wszystkimi lokalami jednej inwestycji. Kolumny: Mieszkanie, Pietro, Status, Pokoje, Powierzchnia m², Cena za m², Cena calkowita, Szczegoly (link do lokalu). Umieszczony bez `id` w tresci inwestycji uzyje ID biezacego postu. Przycisk "Szczegoly" prowadzi do niestandardowego URL-a z pola "URL strony lokalu" w metaboxie lokalu (jesli puste – do domyslnej strony lokalu WordPress).
 
 | Parametr | Domyslnie | Opis |
 |----------|-----------|------|

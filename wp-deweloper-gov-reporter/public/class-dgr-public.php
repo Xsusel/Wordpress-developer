@@ -983,6 +983,8 @@ class DGR_Public {
 						$area        = isset( $meta['_dgr_unit_area'][0] ) ? floatval( $meta['_dgr_unit_area'][0] ) : 0;
 						$price_total = isset( $meta['_dgr_unit_price_total'][0] ) ? floatval( $meta['_dgr_unit_price_total'][0] ) : 0;
 						$price_m2    = isset( $meta['_dgr_unit_price_m2'][0] ) ? floatval( $meta['_dgr_unit_price_m2'][0] ) : 0;
+						$custom_url  = isset( $meta['_dgr_unit_details_url'][0] ) ? $meta['_dgr_unit_details_url'][0] : '';
+						$details_url = '' !== $custom_url ? $custom_url : get_permalink( $pid );
 
 						if ( $price_m2 <= 0 && $price_total > 0 && $area > 0 ) {
 							$price_m2 = $price_total / $area;
@@ -1018,7 +1020,7 @@ class DGR_Public {
 							</td>
 							<?php if ( $show_details ) : ?>
 								<td style="text-align: center;">
-									<a class="dgr-details-btn" href="<?php echo esc_url( get_permalink( $pid ) ); ?>"><?php esc_html_e( 'Szczegóły', 'wp-deweloper-gov-reporter' ); ?></a>
+									<a class="dgr-details-btn" href="<?php echo esc_url( $details_url ); ?>"><?php esc_html_e( 'Szczegóły', 'wp-deweloper-gov-reporter' ); ?></a>
 								</td>
 							<?php endif; ?>
 						</tr>

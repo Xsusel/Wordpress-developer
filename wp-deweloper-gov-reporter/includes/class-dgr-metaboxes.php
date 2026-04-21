@@ -113,6 +113,7 @@ class DGR_Metaboxes {
 		$floor             = get_post_meta( $post->ID, '_dgr_unit_floor', true );
 		$status            = get_post_meta( $post->ID, '_dgr_unit_status', true );
 		$dependencies      = get_post_meta( $post->ID, '_dgr_unit_dependencies', true );
+		$details_url       = get_post_meta( $post->ID, '_dgr_unit_details_url', true );
 
 		$balconies_count        = get_post_meta( $post->ID, '_dgr_unit_balconies_count', true );
 		$balconies_area         = get_post_meta( $post->ID, '_dgr_unit_balconies_area', true );
@@ -310,6 +311,12 @@ class DGR_Metaboxes {
 
 		<hr>
 		<p>
+			<label for="dgr_unit_details_url"><?php esc_html_e( 'URL strony lokalu (przycisk "Szczegóły")', 'wp-deweloper-gov-reporter' ); ?></label>
+			<input type="url" id="dgr_unit_details_url" name="dgr_unit_details_url" value="<?php echo esc_attr( $details_url ); ?>" class="widefat" placeholder="https://twojastrona.pl/lokal/m1">
+			<small style="color:#888;"><?php esc_html_e( 'Opcjonalnie. Jeśli puste, przycisk "Szczegóły" w tabeli prowadzi do domyślnej strony lokalu (WordPress).', 'wp-deweloper-gov-reporter' ); ?></small>
+		</p>
+
+		<p>
 			<label for="dgr_unit_status"><?php esc_html_e( 'Status', 'wp-deweloper-gov-reporter' ); ?></label>
 			<select id="dgr_unit_status" name="dgr_unit_status" class="widefat">
 				<option value="available" <?php selected( $status, 'available' ); ?>><?php esc_html_e( 'Dostępny', 'wp-deweloper-gov-reporter' ); ?></option>
@@ -477,6 +484,12 @@ class DGR_Metaboxes {
 				if ( isset( $_POST[ $field ] ) ) {
 					update_post_meta( $post_id, '_' . $field, sanitize_text_field( $_POST[ $field ] ) );
 				}
+			}
+
+			// URL field
+			if ( isset( $_POST['dgr_unit_details_url'] ) ) {
+				$url = trim( wp_unslash( $_POST['dgr_unit_details_url'] ) );
+				update_post_meta( $post_id, '_dgr_unit_details_url', '' === $url ? '' : esc_url_raw( $url ) );
 			}
 
 			// Rodzaj lokalu (whitelist)
