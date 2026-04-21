@@ -175,12 +175,20 @@
 
 /* Property Card - [dgr_lokal_karta] */
 .dgr-lokal-karta {
+    font-family: inherit;
+    color: inherit;
     background: #fff;
     border: 1px solid #e5e5e5;
     border-radius: 6px;
     padding: 20px 24px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.dgr-lokal-karta * {
+    font-family: inherit;
 }
 
 .dgr-lokal-karta__header {
@@ -252,25 +260,41 @@
 }
 
 /* Full Property Card - [dgr_lokal_karta_full] */
+.dgr-lokal-karta--full {
+    max-width: 960px;
+    margin: 32px auto;
+    padding: 32px 36px;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+}
+
 .dgr-lokal-karta--full .dgr-lokal-karta__header {
     justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.dgr-lokal-karta--full .dgr-lokal-karta__location {
+    font-size: 1.1em;
 }
 
 .dgr-lokal-karta__specs {
     list-style: none;
-    margin: 0 0 16px 0;
+    margin: 0 0 24px 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 8px 16px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0 24px;
 }
 
 .dgr-lokal-karta__specs li {
     display: flex;
     justify-content: space-between;
-    padding: 6px 0;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 0.92em;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
 }
 
 .dgr-lokal-karta__spec-label {
@@ -284,20 +308,43 @@
     text-align: right;
 }
 
+.dgr-lokal-karta--full .dgr-lokal-karta__prices {
+    gap: 16px;
+    margin-top: 8px;
+    padding: 24px;
+    background: #f9fafb;
+    border-radius: 8px;
+}
+
+.dgr-lokal-karta--full .dgr-lokal-karta__price-block {
+    background: #fff;
+    padding: 16px 20px;
+    border-radius: 6px;
+    border: 1px solid #eaeaea;
+    flex: 1 1 220px;
+}
+
+.dgr-lokal-karta--full .dgr-lokal-karta__price-value {
+    font-size: 1.5em;
+}
+
 .dgr-lokal-karta__extras {
-    margin-top: 16px;
-    padding-top: 14px;
+    margin-top: 24px;
+    padding-top: 20px;
     border-top: 1px solid #f0f0f0;
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 20px;
 }
 
 .dgr-lokal-karta__extra {
     flex: 1 1 220px;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
+    padding: 12px 16px;
+    background: #fafafa;
+    border-radius: 6px;
 }
 
 .dgr-lokal-karta__extra-label {
@@ -309,7 +356,6 @@
 }
 
 .dgr-lokal-karta__extra-value {
-    font-size: 0.95em;
     color: #333;
     font-weight: 500;
 }
@@ -363,6 +409,13 @@
 }
 
 /* Responsive */
+@media (max-width: 782px) {
+    .dgr-lokal-karta--full {
+        padding: 20px;
+        margin: 16px auto;
+    }
+}
+
 @media (max-width: 480px) {
     .dgr-lokal-karta__header {
         flex-direction: column;
@@ -372,5 +425,8 @@
     .dgr-lokal-karta__prices {
         flex-direction: column;
         gap: 16px;
+    }
+    .dgr-lokal-karta--full .dgr-lokal-karta__prices {
+        padding: 16px;
     }
 }
