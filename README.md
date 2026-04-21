@@ -4,7 +4,7 @@
 
 Wtyczka **WP Deweloper Gov Reporter** automatyzuje obowiazki wynikajace z nowelizacji ustawy deweloperskiej (od 11.07.2025), nakladajace na deweloperow wymog codziennego udostepniania cen mieszkan do systemu `dane.gov.pl` oraz publikowania pelnej historii cen na wlasnych stronach internetowych.
 
-**Wersja:** 2.0.0
+**Wersja:** 2.1.0
 **Autor:** Jakub Wcislo
 **Wymagania:** WordPress 5.8+, PHP 7.4+
 **Opcjonalnie:** Elementor 3.0+ (dla widgetow)
@@ -237,7 +237,7 @@ Wyswietla tabelke lokali z filtrami AJAX (pokoje, powierzchnia, status).
 [dgr_inwestycja_tabela id="45" hide_sold="yes" show_details="no"]
 ```
 
-Wyswietla tabele ze wszystkimi lokalami jednej inwestycji. Kolumny: Mieszkanie, Pietro, Status, Pokoje, Powierzchnia m², Cena za m², Cena calkowita, Szczegoly (link do lokalu). Umieszczony bez `id` w tresci inwestycji uzyje ID biezacego postu.
+Wyswietla tabele ze wszystkimi lokalami jednej inwestycji. Kolumny: Mieszkanie, Pietro, Status, Pokoje, Powierzchnia m², Cena za m², Cena calkowita, Szczegoly (link do lokalu). Umieszczony bez `id` w tresci inwestycji uzyje ID biezacego postu. Przycisk "Szczegoly" prowadzi do niestandardowego URL-a z pola "URL strony lokalu" w metaboxie lokalu (jesli puste – do domyslnej strony lokalu WordPress).
 
 | Parametr | Domyslnie | Opis |
 |----------|-----------|------|
