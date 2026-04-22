@@ -973,13 +973,13 @@ class DGR_Public {
 		$posts = $this->sort_units( $query->posts, $orderby_key, $order_dir );
 
 		$status_labels = array(
-			'available'             => __( 'dostępne', 'wp-deweloper-gov-reporter' ),
-			'offer'                 => __( 'oferta specjalna', 'wp-deweloper-gov-reporter' ),
-			'reserved'              => __( 'zarezerwowane', 'wp-deweloper-gov-reporter' ),
-			'reservation_agreement' => __( 'umowa rezerwacyjna', 'wp-deweloper-gov-reporter' ),
-			'developer_agreement'   => __( 'umowa deweloperska', 'wp-deweloper-gov-reporter' ),
-			'sold'                  => __( 'sprzedane', 'wp-deweloper-gov-reporter' ),
-			'transferred'           => __( 'przekazane', 'wp-deweloper-gov-reporter' ),
+			'available'             => __( 'Dostępny', 'wp-deweloper-gov-reporter' ),
+			'offer'                 => __( 'Oferta specjalna', 'wp-deweloper-gov-reporter' ),
+			'reserved'              => __( 'Zarezerwowany', 'wp-deweloper-gov-reporter' ),
+			'reservation_agreement' => __( 'Umowa rezerwacyjna', 'wp-deweloper-gov-reporter' ),
+			'developer_agreement'   => __( 'Umowa deweloperska', 'wp-deweloper-gov-reporter' ),
+			'sold'                  => __( 'Sprzedany', 'wp-deweloper-gov-reporter' ),
+			'transferred'           => __( 'Przekazany', 'wp-deweloper-gov-reporter' ),
 		);
 
 		$hide_sold    = ( $atts['hide_sold'] === 'yes' );
@@ -1030,27 +1030,34 @@ class DGR_Public {
 						$display_name = '' !== $unit_id ? $unit_id : get_the_title( $pid );
 					?>
 						<tr>
-							<td data-label="<?php esc_attr_e( 'Mieszkanie', 'wp-deweloper-gov-reporter' ); ?>"><?php echo esc_html( $display_name ); ?></td>
-							<td data-label="<?php esc_attr_e( 'Piętro', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: center;"><?php echo '' !== $floor ? esc_html( $floor ) : '—'; ?></td>
-							<td data-label="<?php esc_attr_e( 'Status', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: center;">
+							<td class="dgr-col-unit" data-label="<?php esc_attr_e( 'Mieszkanie', 'wp-deweloper-gov-reporter' ); ?>"><?php echo esc_html( $display_name ); ?></td>
+							<td class="dgr-col-floor" data-label="<?php esc_attr_e( 'Piętro', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: center;"><?php echo '' !== $floor ? esc_html( $floor ) : '—'; ?></td>
+							<td class="dgr-col-status" data-label="<?php esc_attr_e( 'Status', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: center;">
 								<?php if ( $status ) : ?>
 									<span class="dgr-status-badge <?php echo esc_attr( $status_class ); ?>"><?php echo esc_html( $status_label ); ?></span>
 								<?php else : ?>
 									—
 								<?php endif; ?>
 							</td>
-							<td data-label="<?php esc_attr_e( 'Pokoje', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: center;"><?php echo '' !== $rooms ? esc_html( $rooms ) : '—'; ?></td>
-							<td data-label="<?php esc_attr_e( 'Powierzchnia', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: right;">
+							<td class="dgr-col-rooms" data-label="<?php esc_attr_e( 'Pokoje', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: center;"><?php echo '' !== $rooms ? esc_html( $rooms ) : '—'; ?></td>
+							<td class="dgr-col-area" data-label="<?php esc_attr_e( 'Powierzchnia', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: right;">
 								<?php echo $area > 0 ? esc_html( number_format( $area, 2, ',', ' ' ) ) . ' m²' : '—'; ?>
 							</td>
-							<td data-label="<?php esc_attr_e( 'Cena za m²', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: right;">
-								<?php echo $price_m2 > 0 ? esc_html( number_format( $price_m2, 2, ',', ' ' ) ) . ' zł' : '—'; ?>
+							<td class="dgr-col-price-m2" data-label="<?php esc_attr_e( 'Cena za m²', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: right;">
+								<?php echo $price_m2 > 0 ? esc_html( number_format( $price_m2, 2, ',', ' ' ) ) . ' zł/m²' : '—'; ?>
 							</td>
-							<td data-label="<?php esc_attr_e( 'Cena całkowita', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: right;">
-								<?php echo $price_total > 0 ? esc_html( number_format( $price_total, 2, ',', ' ' ) ) . ' zł' : '—'; ?>
+							<td class="dgr-col-price-total" data-label="<?php esc_attr_e( 'Cena całkowita', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: right;">
+								<?php
+								if ( $price_total > 0 ) {
+									$decimals = ( fmod( $price_total, 1 ) > 0.0001 ) ? 2 : 0;
+									echo esc_html( number_format( $price_total, $decimals, ',', ' ' ) ) . ' zł';
+								} else {
+									echo '—';
+								}
+								?>
 							</td>
 							<?php if ( $show_details ) : ?>
-								<td data-label="<?php esc_attr_e( 'Szczegóły', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: center;">
+								<td class="dgr-col-details" data-label="<?php esc_attr_e( 'Szczegóły', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: center;">
 									<a class="dgr-details-btn" href="<?php echo esc_url( $details_url ); ?>"><?php esc_html_e( 'Szczegóły', 'wp-deweloper-gov-reporter' ); ?></a>
 								</td>
 							<?php endif; ?>

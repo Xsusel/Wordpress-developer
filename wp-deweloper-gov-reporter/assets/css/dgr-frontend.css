@@ -480,15 +480,30 @@
     }
 
     .dgr-inwestycja-tabela tbody,
-    .dgr-inwestycja-tabela tr,
-    .dgr-unit-list-wrapper .dgr-table tbody,
-    .dgr-unit-list-wrapper .dgr-table tr {
+    .dgr-unit-list-wrapper .dgr-table tbody {
         display: block;
         width: 100%;
     }
 
-    .dgr-inwestycja-tabela tr,
+    /* Card = one row rendered as a two-column grid */
+    .dgr-inwestycja-tabela tr {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 14px;
+        row-gap: 0;
+        width: 100%;
+        margin-bottom: 16px;
+        padding: 18px 20px;
+        border: 1px solid #e5e5e5;
+        border-radius: 10px;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        box-sizing: border-box;
+    }
+
     .dgr-unit-list-wrapper .dgr-table tr {
+        display: block;
+        width: 100%;
         margin-bottom: 14px;
         padding: 10px 14px;
         border: 1px solid #e5e5e5;
@@ -503,17 +518,21 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 12px;
-        padding: 8px 0;
-        border-bottom: 1px solid #f2f2f2;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: none;
         text-align: right !important;
         white-space: normal;
         word-break: break-word;
         overflow-wrap: anywhere;
         min-width: 0;
+        grid-column: span 2;
     }
 
-    .dgr-inwestycja-tabela td:last-child,
+    .dgr-unit-list-wrapper .dgr-table td {
+        border-bottom: 1px solid #f2f2f2;
+    }
+
     .dgr-unit-list-wrapper .dgr-table td:last-child {
         border-bottom: none;
     }
@@ -521,25 +540,118 @@
     .dgr-inwestycja-tabela td::before,
     .dgr-unit-list-wrapper .dgr-table td::before {
         content: attr(data-label);
-        font-weight: 600;
+        font-weight: 500;
         color: #555;
         text-align: left;
-        flex: 0 0 45%;
+        flex: 0 0 auto;
         white-space: normal;
     }
 
-    .dgr-inwestycja-tabela td .dgr-details-btn {
-        width: 100%;
-        text-align: center;
-        padding: 10px 14px;
+    .dgr-unit-list-wrapper .dgr-table td::before {
+        flex: 0 0 45%;
     }
 
-    .dgr-inwestycja-tabela td:has(.dgr-details-btn)::before {
+    /* Row 1: Mieszkanie (big + bold) | Status badge (top-right) */
+    .dgr-inwestycja-tabela .dgr-col-unit {
+        grid-column: 1;
+        justify-content: flex-start;
+        padding: 2px 0 10px;
+        font-size: 2em;
+        font-weight: 800;
+        color: #111;
+        line-height: 1.1;
+        text-align: left !important;
+    }
+    .dgr-inwestycja-tabela .dgr-col-unit::before {
         display: none;
     }
 
-    .dgr-inwestycja-tabela td:has(.dgr-details-btn) {
+    .dgr-inwestycja-tabela .dgr-col-status {
+        grid-column: 2;
+        justify-content: flex-end;
+        padding: 2px 0 10px;
+    }
+    .dgr-inwestycja-tabela .dgr-col-status::before {
+        display: none;
+    }
+
+    /* Row 2: Piętro | Liczba pokoi (side-by-side, inline label+value) */
+    .dgr-inwestycja-tabela .dgr-col-floor {
+        grid-column: 1;
+        justify-content: flex-start;
+        gap: 10px;
+        padding: 14px 0;
+        border-bottom: 1px solid #eee;
+        text-align: left !important;
+        font-weight: 700;
+        color: #111;
+    }
+    .dgr-inwestycja-tabela .dgr-col-floor::before {
+        flex: 0 0 auto;
+        font-weight: 400;
+        color: #666;
+    }
+    .dgr-inwestycja-tabela .dgr-col-rooms {
+        grid-column: 2;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 14px 0;
+        border-bottom: 1px solid #eee;
+        font-weight: 700;
+        color: #111;
+    }
+    .dgr-inwestycja-tabela .dgr-col-rooms::before {
+        flex: 0 0 auto;
+        font-weight: 400;
+        color: #666;
+    }
+
+    /* Powierzchnia: label left, bold value right */
+    .dgr-inwestycja-tabela .dgr-col-area {
+        padding: 12px 0;
+        font-weight: 700;
+        font-size: 1em;
+    }
+
+    /* Cena za m²: highlighted label */
+    .dgr-inwestycja-tabela .dgr-col-price-m2 {
+        padding: 12px 0;
+    }
+    .dgr-inwestycja-tabela .dgr-col-price-m2::before {
+        background: #f3f3f3;
+        padding: 6px 10px;
+        border-radius: 4px;
+        font-weight: 600;
+        color: #222;
+    }
+
+    /* Cena całkowita: big + bold value */
+    .dgr-inwestycja-tabela .dgr-col-price-total {
+        padding: 16px 0 8px;
+        font-size: 1.5em;
+        font-weight: 800;
+        color: #111;
+        letter-spacing: -0.01em;
+    }
+    .dgr-inwestycja-tabela .dgr-col-price-total::before {
+        font-size: 0.65em;
+        font-weight: 500;
+        color: #444;
+    }
+
+    /* Szczegóły: full-width button */
+    .dgr-inwestycja-tabela .dgr-col-details {
+        padding: 10px 0 2px;
         justify-content: stretch;
+    }
+    .dgr-inwestycja-tabela .dgr-col-details::before {
+        display: none;
+    }
+    .dgr-inwestycja-tabela td .dgr-details-btn {
+        width: 100%;
+        text-align: center;
+        padding: 12px 14px;
+        font-size: 1em;
     }
 }
 
