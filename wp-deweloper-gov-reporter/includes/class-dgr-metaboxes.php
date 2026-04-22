@@ -106,6 +106,7 @@ class DGR_Metaboxes {
 
 		$parent_investment = get_post_meta( $post->ID, '_dgr_unit_parent_investment', true );
 		$unit_id           = get_post_meta( $post->ID, '_dgr_unit_id', true );
+		$sort_order        = get_post_meta( $post->ID, '_dgr_unit_sort_order', true );
 		$price_total       = get_post_meta( $post->ID, '_dgr_unit_price_total', true );
 		$price_m2          = get_post_meta( $post->ID, '_dgr_unit_price_m2', true );
 		$area              = get_post_meta( $post->ID, '_dgr_unit_area', true );
@@ -161,7 +162,9 @@ class DGR_Metaboxes {
 				<select id="dgr_unit_type" name="dgr_unit_type" class="widefat" required>
 					<option value="lokal_mieszkalny" <?php selected( $unit_type, 'lokal_mieszkalny' ); ?>><?php esc_html_e( 'Lokal mieszkalny', 'wp-deweloper-gov-reporter' ); ?></option>
 					<option value="dom_jednorodzinny" <?php selected( $unit_type, 'dom_jednorodzinny' ); ?>><?php esc_html_e( 'Dom jednorodzinny', 'wp-deweloper-gov-reporter' ); ?></option>
+					<option value="lokal_uslugowy" <?php selected( $unit_type, 'lokal_uslugowy' ); ?>><?php esc_html_e( 'Lokal usługowy', 'wp-deweloper-gov-reporter' ); ?></option>
 				</select>
+				<small style="color:#888;"><?php esc_html_e( 'Uwaga: lokale usługowe nie podlegają ustawie deweloperskiej — nie trafią do raportu XML.', 'wp-deweloper-gov-reporter' ); ?></small>
 			</p>
 			<p style="flex:1;min-width:200px;">
 				<label for="dgr_unit_id"><?php esc_html_e( 'Numer Lokalu / ID', 'wp-deweloper-gov-reporter' ); ?> <span class="required">*</span></label>
@@ -171,6 +174,11 @@ class DGR_Metaboxes {
 		<p>
 			<label for="dgr_unit_location_label"><?php esc_html_e( 'Lokalizacja (etykieta)', 'wp-deweloper-gov-reporter' ); ?></label>
 			<input type="text" id="dgr_unit_location_label" name="dgr_unit_location_label" value="<?php echo esc_attr( $location_label ); ?>" class="widefat" placeholder="<?php esc_attr_e( 'np. BOLMIN (25 KM OD KIELC)', 'wp-deweloper-gov-reporter' ); ?>">
+		</p>
+		<p>
+			<label for="dgr_unit_sort_order"><?php esc_html_e( 'Kolejność wyświetlania', 'wp-deweloper-gov-reporter' ); ?></label>
+			<input type="number" min="0" step="1" id="dgr_unit_sort_order" name="dgr_unit_sort_order" value="<?php echo esc_attr( $sort_order ); ?>" class="widefat" placeholder="0">
+			<small style="color:#888;"><?php esc_html_e( 'Pozycja od góry (1 = pierwszy, 2 = drugi itd.). Puste lub 0 = lokal trafia na koniec listy.', 'wp-deweloper-gov-reporter' ); ?></small>
 		</p>
 
 		<hr>
@@ -495,8 +503,19 @@ class DGR_Metaboxes {
 			// Rodzaj lokalu (whitelist)
 			if ( isset( $_POST['dgr_unit_type'] ) ) {
 				$type = sanitize_key( $_POST['dgr_unit_type'] );
-				if ( in_array( $type, array( 'lokal_mieszkalny', 'dom_jednorodzinny' ), true ) ) {
+				if ( in_array( $type, array( 'lokal_mieszkalny', 'dom_jednorodzinny', 'lokal_uslugowy' ), true ) ) {
 					update_post_meta( $post_id, '_dgr_unit_type', $type );
+				}
+			}
+
+			// Sort order (non-negative integer; 0 = end of list)
+			if ( isset( $_POST['dgr_unit_sort_order'] ) ) {
+				$raw_order = trim( (string) $_POST['dgr_unit_sort_order'] );
+				if ( '' === $raw_order ) {
+					delete_post_meta( $post_id, '_dgr_unit_sort_order' );
+				} else {
+					$sort_val = max( 0, intval( $raw_order ) );
+					update_post_meta( $post_id, '_dgr_unit_sort_order', $sort_val );
 				}
 			}
 

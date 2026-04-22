@@ -80,6 +80,15 @@ class DGR_API_Connector {
 
 			foreach ( $query->posts as $unit ) {
 				$meta = get_post_meta( $unit->ID );
+
+				// Ustawa deweloperska (Dz.U. 2023 poz. 28) obejmuje wyłącznie
+				// lokale mieszkalne i domy jednorodzinne — lokale usługowe i inne
+				// są poza zakresem i nie trafiają do raportu.
+				$rodzaj_meta = isset( $meta['_dgr_unit_type'][0] ) ? $meta['_dgr_unit_type'][0] : 'lokal_mieszkalny';
+				if ( ! in_array( $rodzaj_meta, array( 'lokal_mieszkalny', 'dom_jednorodzinny' ), true ) ) {
+					continue;
+				}
+
 				$parent_id = isset( $meta['_dgr_unit_parent_investment'][0] ) ? intval( $meta['_dgr_unit_parent_investment'][0] ) : 0;
 
 				$investment = array(

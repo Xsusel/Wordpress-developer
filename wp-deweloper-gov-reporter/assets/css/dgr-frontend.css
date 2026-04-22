@@ -372,11 +372,17 @@
 /* Investment Table - [dgr_inwestycja_tabela] */
 .dgr-inwestycja-tabela-wrapper {
     margin-bottom: 24px;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .dgr-inwestycja-tabela {
     font-family: inherit;
     color: inherit;
+    width: 100%;
+    max-width: 100%;
+    table-layout: auto;
 }
 
 .dgr-inwestycja-tabela th {
@@ -408,32 +414,47 @@
     color: #fff !important;
 }
 
-/* Investment table - mobile: stack rows as cards */
+/* Investment + Unit List tables - mobile: stack rows as cards */
 @media (max-width: 782px) {
-    .dgr-inwestycja-tabela {
-        display: block;
+    .dgr-inwestycja-tabela-wrapper,
+    .dgr-unit-list-wrapper .dgr-results {
+        overflow-x: visible;
     }
 
-    .dgr-inwestycja-tabela thead {
+    .dgr-inwestycja-tabela,
+    .dgr-unit-list-wrapper .dgr-table {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        border-collapse: collapse;
+    }
+
+    .dgr-inwestycja-tabela thead,
+    .dgr-unit-list-wrapper .dgr-table thead {
         display: none;
     }
 
     .dgr-inwestycja-tabela tbody,
-    .dgr-inwestycja-tabela tr {
+    .dgr-inwestycja-tabela tr,
+    .dgr-unit-list-wrapper .dgr-table tbody,
+    .dgr-unit-list-wrapper .dgr-table tr {
         display: block;
         width: 100%;
     }
 
-    .dgr-inwestycja-tabela tr {
+    .dgr-inwestycja-tabela tr,
+    .dgr-unit-list-wrapper .dgr-table tr {
         margin-bottom: 14px;
         padding: 10px 14px;
         border: 1px solid #e5e5e5;
         border-radius: 8px;
         background: #fff;
         box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        box-sizing: border-box;
     }
 
-    .dgr-inwestycja-tabela td {
+    .dgr-inwestycja-tabela td,
+    .dgr-unit-list-wrapper .dgr-table td {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -442,18 +463,24 @@
         border-bottom: 1px solid #f2f2f2;
         text-align: right !important;
         white-space: normal;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        min-width: 0;
     }
 
-    .dgr-inwestycja-tabela td:last-child {
+    .dgr-inwestycja-tabela td:last-child,
+    .dgr-unit-list-wrapper .dgr-table td:last-child {
         border-bottom: none;
     }
 
-    .dgr-inwestycja-tabela td::before {
+    .dgr-inwestycja-tabela td::before,
+    .dgr-unit-list-wrapper .dgr-table td::before {
         content: attr(data-label);
         font-weight: 600;
         color: #555;
         text-align: left;
         flex: 0 0 45%;
+        white-space: normal;
     }
 
     .dgr-inwestycja-tabela td .dgr-details-btn {
