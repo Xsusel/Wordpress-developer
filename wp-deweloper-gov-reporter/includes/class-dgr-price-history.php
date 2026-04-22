@@ -70,36 +70,59 @@ class DGR_Price_History {
 	}
 
 	public static function get_lowest_price_30_days( $post_id ) {
-		$history = get_post_meta( $post_id, '_dgr_price_history', true );
-		if ( empty( $history ) || ! is_array( $history ) ) {
-			return false;
-		}
+		$lowest = self::get_lowest_prices_30_days( $post_id );
+		return false !== $lowest ? $lowest['price_total'] : false;
+	}
 
+	/**
+	 * Return both lowest cena_calkowita and lowest cena_m2 from the last 30 days.
+	 * Falls back to current values if there are no entries in the window.
+	 *
+	 * @return array{price_total:float,price_m2:float}|false
+	 */
+	public static function get_lowest_prices_30_days( $post_id ) {
+		$history = get_post_meta( $post_id, '_dgr_price_history', true );
 		$thirty_days_ago = strtotime( '-30 days', time() );
 
-		$relevant_prices = array();
+		$lowest_total = null;
+		$lowest_m2    = null;
 
-		foreach ( $history as $entry ) {
-			if ( ! isset( $entry['date'] ) || ! isset( $entry['price_total'] ) ) {
-				continue;
-			}
-			$entry_time = strtotime( $entry['date'] );
-			if ( false === $entry_time ) {
-				continue;
-			}
-			if ( $entry_time >= $thirty_days_ago ) {
-				$price = floatval( $entry['price_total'] );
-				if ( $price > 0 ) {
-					$relevant_prices[] = $price;
+		if ( is_array( $history ) ) {
+			foreach ( $history as $entry ) {
+				if ( ! isset( $entry['date'] ) ) {
+					continue;
+				}
+				$entry_time = strtotime( $entry['date'] );
+				if ( false === $entry_time || $entry_time < $thirty_days_ago ) {
+					continue;
+				}
+				$total = isset( $entry['price_total'] ) ? floatval( $entry['price_total'] ) : 0;
+				$m2    = isset( $entry['price_m2'] ) ? floatval( $entry['price_m2'] ) : 0;
+				if ( $total > 0 && ( null === $lowest_total || $total < $lowest_total ) ) {
+					$lowest_total = $total;
+				}
+				if ( $m2 > 0 && ( null === $lowest_m2 || $m2 < $lowest_m2 ) ) {
+					$lowest_m2 = $m2;
 				}
 			}
 		}
 
-		if ( empty( $relevant_prices ) ) {
-			$current_price = floatval( get_post_meta( $post_id, '_dgr_unit_price_total', true ) );
-			return $current_price > 0 ? $current_price : false;
+		if ( null === $lowest_total ) {
+			$current_total = floatval( get_post_meta( $post_id, '_dgr_unit_price_total', true ) );
+			$lowest_total  = $current_total > 0 ? $current_total : 0;
+		}
+		if ( null === $lowest_m2 ) {
+			$current_m2 = floatval( get_post_meta( $post_id, '_dgr_unit_price_m2', true ) );
+			$lowest_m2  = $current_m2 > 0 ? $current_m2 : 0;
 		}
 
-		return min( $relevant_prices );
+		if ( $lowest_total <= 0 && $lowest_m2 <= 0 ) {
+			return false;
+		}
+
+		return array(
+			'price_total' => $lowest_total,
+			'price_m2'    => $lowest_m2,
+		);
 	}
 }

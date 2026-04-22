@@ -641,6 +641,8 @@ class DGR_Public {
 		$parent_id       = intval( $get( '_dgr_unit_parent_investment' ) );
 		$investment_name = $parent_id ? get_the_title( $parent_id ) : '';
 		$investment_addr = '';
+		$investment_url  = '';
+		$prospectus_url  = '';
 		if ( $parent_id ) {
 			$inv = get_post_meta( $parent_id );
 			$street  = isset( $inv['_dgr_investment_street'][0] ) ? $inv['_dgr_investment_street'][0] : '';
@@ -648,7 +650,12 @@ class DGR_Public {
 			$city    = isset( $inv['_dgr_investment_city'][0] ) ? $inv['_dgr_investment_city'][0] : '';
 			$parts   = array_filter( array( trim( $street . ' ' . $bldg ), $city ) );
 			$investment_addr = implode( ', ', $parts );
+			$investment_url  = isset( $inv['_dgr_investment_website_url'][0] ) ? $inv['_dgr_investment_website_url'][0] : '';
+			$prospectus_url  = isset( $inv['_dgr_investment_prospectus_url'][0] ) ? $inv['_dgr_investment_prospectus_url'][0] : '';
 		}
+		$omnibus = DGR_Price_History::get_lowest_prices_30_days( $post_id );
+		$omnibus_total = ( $omnibus && isset( $omnibus['price_total'] ) ) ? floatval( $omnibus['price_total'] ) : 0;
+		$omnibus_m2    = ( $omnibus && isset( $omnibus['price_m2'] ) ) ? floatval( $omnibus['price_m2'] ) : 0;
 		$unit_id         = $get( '_dgr_unit_id' );
 		$unit_type       = $get( '_dgr_unit_type' );
 		$location        = $get( '_dgr_unit_location_label' );
@@ -754,6 +761,9 @@ class DGR_Public {
 							<?php if ( $price_m2 > 0 ) : ?>
 								<span class="dgr-lokal-karta__price-m2"><?php echo esc_html( number_format( $price_m2, 2, ',', ' ' ) ); ?> zł/m&sup2;</span>
 							<?php endif; ?>
+							<?php if ( $omnibus_total > 0 && $omnibus_total < $price_total ) : ?>
+								<span class="dgr-lokal-karta__price-omnibus"><?php echo esc_html( sprintf( __( 'Najniższa cena z 30 dni: %s', 'wp-deweloper-gov-reporter' ), $this->format_price( $omnibus_total ) ) ); ?></span>
+							<?php endif; ?>
 						</div>
 					<?php endif; ?>
 
@@ -815,6 +825,21 @@ class DGR_Public {
 								<?php endif; ?>
 							</span>
 						</div>
+					<?php endif; ?>
+				</div>
+			<?php endif; ?>
+
+			<?php if ( '' !== $investment_url || '' !== $prospectus_url ) : ?>
+				<div class="dgr-lokal-karta__links">
+					<?php if ( '' !== $investment_url ) : ?>
+						<a class="dgr-lokal-karta__link" href="<?php echo esc_url( $investment_url ); ?>" target="_blank" rel="noopener">
+							<?php esc_html_e( 'Strona inwestycji', 'wp-deweloper-gov-reporter' ); ?>
+						</a>
+					<?php endif; ?>
+					<?php if ( '' !== $prospectus_url ) : ?>
+						<a class="dgr-lokal-karta__link dgr-lokal-karta__link--secondary" href="<?php echo esc_url( $prospectus_url ); ?>" target="_blank" rel="noopener">
+							<?php esc_html_e( 'Prospekt informacyjny (PDF)', 'wp-deweloper-gov-reporter' ); ?>
+						</a>
 					<?php endif; ?>
 				</div>
 			<?php endif; ?>

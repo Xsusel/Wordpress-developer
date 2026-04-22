@@ -259,6 +259,51 @@
     color: #999;
 }
 
+.dgr-lokal-karta__price-omnibus {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.78em;
+    color: #8a6d3b;
+    font-style: italic;
+}
+
+.dgr-lokal-karta__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #eee;
+}
+
+.dgr-lokal-karta__link {
+    display: inline-block;
+    padding: 10px 18px;
+    background-color: #0073aa;
+    color: #fff !important;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.dgr-lokal-karta__link:hover {
+    background-color: #005177;
+    color: #fff !important;
+}
+
+.dgr-lokal-karta__link--secondary {
+    background-color: #f1f1f1;
+    color: #333 !important;
+    border: 1px solid #ccc;
+}
+
+.dgr-lokal-karta__link--secondary:hover {
+    background-color: #e5e5e5;
+    color: #111 !important;
+}
+
 /* Full Property Card - [dgr_lokal_karta_full] */
 .dgr-lokal-karta--full {
     max-width: 960px;

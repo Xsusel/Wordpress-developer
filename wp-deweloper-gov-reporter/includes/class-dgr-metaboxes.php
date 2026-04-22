@@ -43,6 +43,8 @@ class DGR_Metaboxes {
 		$street         = get_post_meta( $post->ID, '_dgr_investment_street', true );
 		$building_no    = get_post_meta( $post->ID, '_dgr_investment_building_number', true );
 		$postal_code    = get_post_meta( $post->ID, '_dgr_investment_postal_code', true );
+		$website_url    = get_post_meta( $post->ID, '_dgr_investment_website_url', true );
+		$prospectus_url = get_post_meta( $post->ID, '_dgr_investment_prospectus_url', true );
 
 		$voivodeships = array(
 			'dolnośląskie', 'kujawsko-pomorskie', 'lubelskie', 'lubuskie', 'łódzkie',
@@ -98,6 +100,18 @@ class DGR_Metaboxes {
 				<input type="text" id="dgr_investment_postal_code" name="dgr_investment_postal_code" value="<?php echo esc_attr( $postal_code ); ?>" class="widefat" pattern="[0-9]{2}-[0-9]{3}" placeholder="00-000">
 			</p>
 		</div>
+
+		<hr>
+		<h4 style="margin-bottom:5px;"><?php esc_html_e( 'Linki publiczne (raport XML + karty lokali)', 'wp-deweloper-gov-reporter' ); ?></h4>
+		<p>
+			<label for="dgr_investment_website_url"><?php esc_html_e( 'URL strony inwestycji', 'wp-deweloper-gov-reporter' ); ?></label>
+			<input type="url" id="dgr_investment_website_url" name="dgr_investment_website_url" value="<?php echo esc_attr( $website_url ); ?>" class="widefat" placeholder="https://twojastrona.pl/osiedle-park">
+		</p>
+		<p>
+			<label for="dgr_investment_prospectus_url"><?php esc_html_e( 'URL prospektu informacyjnego (PDF)', 'wp-deweloper-gov-reporter' ); ?></label>
+			<input type="url" id="dgr_investment_prospectus_url" name="dgr_investment_prospectus_url" value="<?php echo esc_attr( $prospectus_url ); ?>" class="widefat" placeholder="https://twojastrona.pl/prospekt-informacyjny.pdf">
+			<small style="color:#888;"><?php esc_html_e( 'Rekomendowany przez dane.gov.pl — link pojawi się w raporcie XML i na pełnej karcie lokalu.', 'wp-deweloper-gov-reporter' ); ?></small>
+		</p>
 		<?php
 	}
 
@@ -469,6 +483,13 @@ class DGR_Metaboxes {
 			foreach ( $fields as $field ) {
 				if ( isset( $_POST[ $field ] ) ) {
 					update_post_meta( $post_id, '_' . $field, sanitize_text_field( $_POST[ $field ] ) );
+				}
+			}
+
+			foreach ( array( 'dgr_investment_website_url', 'dgr_investment_prospectus_url' ) as $url_field ) {
+				if ( isset( $_POST[ $url_field ] ) ) {
+					$url = trim( wp_unslash( $_POST[ $url_field ] ) );
+					update_post_meta( $post_id, '_' . $url_field, '' === $url ? '' : esc_url_raw( $url ) );
 				}
 			}
 		}
