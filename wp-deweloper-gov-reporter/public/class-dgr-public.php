@@ -973,13 +973,13 @@ class DGR_Public {
 		$posts = $this->sort_units( $query->posts, $orderby_key, $order_dir );
 
 		$status_labels = array(
-			'available'             => __( 'dostępne', 'wp-deweloper-gov-reporter' ),
-			'offer'                 => __( 'oferta specjalna', 'wp-deweloper-gov-reporter' ),
-			'reserved'              => __( 'zarezerwowane', 'wp-deweloper-gov-reporter' ),
-			'reservation_agreement' => __( 'umowa rezerwacyjna', 'wp-deweloper-gov-reporter' ),
-			'developer_agreement'   => __( 'umowa deweloperska', 'wp-deweloper-gov-reporter' ),
-			'sold'                  => __( 'sprzedane', 'wp-deweloper-gov-reporter' ),
-			'transferred'           => __( 'przekazane', 'wp-deweloper-gov-reporter' ),
+			'available'             => __( 'Dostępny', 'wp-deweloper-gov-reporter' ),
+			'offer'                 => __( 'Oferta specjalna', 'wp-deweloper-gov-reporter' ),
+			'reserved'              => __( 'Zarezerwowany', 'wp-deweloper-gov-reporter' ),
+			'reservation_agreement' => __( 'Umowa rezerwacyjna', 'wp-deweloper-gov-reporter' ),
+			'developer_agreement'   => __( 'Umowa deweloperska', 'wp-deweloper-gov-reporter' ),
+			'sold'                  => __( 'Sprzedany', 'wp-deweloper-gov-reporter' ),
+			'transferred'           => __( 'Przekazany', 'wp-deweloper-gov-reporter' ),
 		);
 
 		$hide_sold    = ( $atts['hide_sold'] === 'yes' );
@@ -1047,7 +1047,14 @@ class DGR_Public {
 								<?php echo $price_m2 > 0 ? esc_html( number_format( $price_m2, 2, ',', ' ' ) ) . ' zł/m²' : '—'; ?>
 							</td>
 							<td class="dgr-col-price-total" data-label="<?php esc_attr_e( 'Cena całkowita', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: right;">
-								<?php echo $price_total > 0 ? esc_html( number_format( $price_total, 2, ',', ' ' ) ) . ' zł' : '—'; ?>
+								<?php
+								if ( $price_total > 0 ) {
+									$decimals = ( fmod( $price_total, 1 ) > 0.0001 ) ? 2 : 0;
+									echo esc_html( number_format( $price_total, $decimals, ',', ' ' ) ) . ' zł';
+								} else {
+									echo '—';
+								}
+								?>
 							</td>
 							<?php if ( $show_details ) : ?>
 								<td class="dgr-col-details" data-label="<?php esc_attr_e( 'Szczegóły', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: center;">

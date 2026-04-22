@@ -579,31 +579,31 @@
     .dgr-inwestycja-tabela .dgr-col-floor {
         grid-column: 1;
         justify-content: flex-start;
-        gap: 8px;
-        padding: 12px 0;
+        gap: 10px;
+        padding: 14px 0;
         border-bottom: 1px solid #eee;
         text-align: left !important;
+        font-weight: 700;
+        color: #111;
     }
     .dgr-inwestycja-tabela .dgr-col-floor::before {
         flex: 0 0 auto;
-        font-weight: 500;
-        color: #555;
+        font-weight: 400;
+        color: #666;
     }
     .dgr-inwestycja-tabela .dgr-col-rooms {
         grid-column: 2;
         justify-content: flex-end;
-        gap: 8px;
-        padding: 12px 0;
+        gap: 10px;
+        padding: 14px 0;
         border-bottom: 1px solid #eee;
+        font-weight: 700;
+        color: #111;
     }
     .dgr-inwestycja-tabela .dgr-col-rooms::before {
         flex: 0 0 auto;
-        font-weight: 500;
-        color: #555;
-    }
-    .dgr-inwestycja-tabela .dgr-col-floor,
-    .dgr-inwestycja-tabela .dgr-col-rooms {
-        font-weight: 600;
+        font-weight: 400;
+        color: #666;
     }
 
     /* Powierzchnia: label left, bold value right */
@@ -627,13 +627,14 @@
 
     /* Cena całkowita: big + bold value */
     .dgr-inwestycja-tabela .dgr-col-price-total {
-        padding: 14px 0 6px;
-        font-size: 1.35em;
+        padding: 16px 0 8px;
+        font-size: 1.5em;
         font-weight: 800;
         color: #111;
+        letter-spacing: -0.01em;
     }
     .dgr-inwestycja-tabela .dgr-col-price-total::before {
-        font-size: 0.75em;
+        font-size: 0.65em;
         font-weight: 500;
         color: #444;
     }
