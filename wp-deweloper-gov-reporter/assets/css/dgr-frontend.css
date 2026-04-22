@@ -493,10 +493,10 @@
         row-gap: 0;
         width: 100%;
         margin-bottom: 16px;
-        padding: 18px 20px;
-        border: 1px solid #e5e5e5;
+        padding: 22px 20px;
+        border: 1px solid #e5e5e5 !important;
         border-radius: 10px;
-        background: #fff;
+        background: #fff !important;
         box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         box-sizing: border-box;
     }
@@ -506,9 +506,9 @@
         width: 100%;
         margin-bottom: 14px;
         padding: 10px 14px;
-        border: 1px solid #e5e5e5;
+        border: 1px solid #e5e5e5 !important;
         border-radius: 8px;
-        background: #fff;
+        background: #fff !important;
         box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         box-sizing: border-box;
     }
@@ -520,21 +520,22 @@
         align-items: center;
         gap: 10px;
         padding: 10px 0;
-        border-bottom: none;
+        border: none !important;
+        background: transparent !important;
         text-align: right !important;
         white-space: normal;
         word-break: break-word;
         overflow-wrap: anywhere;
         min-width: 0;
-        grid-column: span 2;
+        grid-column: 1 / span 2;
     }
 
     .dgr-unit-list-wrapper .dgr-table td {
-        border-bottom: 1px solid #f2f2f2;
+        border-bottom: 1px solid #f2f2f2 !important;
     }
 
     .dgr-unit-list-wrapper .dgr-table td:last-child {
-        border-bottom: none;
+        border-bottom: none !important;
     }
 
     .dgr-inwestycja-tabela td::before,
@@ -554,12 +555,14 @@
     /* Row 1: Mieszkanie (big + bold) | Status badge (top-right) */
     .dgr-inwestycja-tabela .dgr-col-unit {
         grid-column: 1;
+        grid-row: 1;
         justify-content: flex-start;
-        padding: 2px 0 10px;
+        align-items: flex-start;
+        padding: 0 0 12px;
         font-size: 2em;
         font-weight: 800;
         color: #111;
-        line-height: 1.1;
+        line-height: 1.2;
         text-align: left !important;
     }
     .dgr-inwestycja-tabela .dgr-col-unit::before {
@@ -568,8 +571,10 @@
 
     .dgr-inwestycja-tabela .dgr-col-status {
         grid-column: 2;
+        grid-row: 1;
         justify-content: flex-end;
-        padding: 2px 0 10px;
+        align-items: flex-start;
+        padding: 4px 0 12px;
     }
     .dgr-inwestycja-tabela .dgr-col-status::before {
         display: none;
@@ -578,10 +583,11 @@
     /* Row 2: Piętro | Liczba pokoi (side-by-side, inline label+value) */
     .dgr-inwestycja-tabela .dgr-col-floor {
         grid-column: 1;
+        grid-row: 2;
         justify-content: flex-start;
         gap: 10px;
         padding: 14px 0;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid #eee !important;
         text-align: left !important;
         font-weight: 700;
         color: #111;
@@ -593,10 +599,11 @@
     }
     .dgr-inwestycja-tabela .dgr-col-rooms {
         grid-column: 2;
+        grid-row: 2;
         justify-content: flex-end;
         gap: 10px;
         padding: 14px 0;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid #eee !important;
         font-weight: 700;
         color: #111;
     }
@@ -608,13 +615,17 @@
 
     /* Powierzchnia: label left, bold value right */
     .dgr-inwestycja-tabela .dgr-col-area {
-        padding: 12px 0;
+        grid-column: 1 / span 2;
+        grid-row: 3;
+        padding: 14px 0;
         font-weight: 700;
         font-size: 1em;
     }
 
     /* Cena za m²: highlighted label */
     .dgr-inwestycja-tabela .dgr-col-price-m2 {
+        grid-column: 1 / span 2;
+        grid-row: 4;
         padding: 12px 0;
     }
     .dgr-inwestycja-tabela .dgr-col-price-m2::before {
@@ -627,6 +638,8 @@
 
     /* Cena całkowita: big + bold value */
     .dgr-inwestycja-tabela .dgr-col-price-total {
+        grid-column: 1 / span 2;
+        grid-row: 5;
         padding: 16px 0 8px;
         font-size: 1.5em;
         font-weight: 800;
@@ -641,6 +654,8 @@
 
     /* Szczegóły: full-width button */
     .dgr-inwestycja-tabela .dgr-col-details {
+        grid-column: 1 / span 2;
+        grid-row: 6;
         padding: 10px 0 2px;
         justify-content: stretch;
     }
