@@ -83,6 +83,7 @@ class DGR_Admin_Columns {
 		$new_columns = array();
 		$new_columns['cb'] = $columns['cb'];
 		$new_columns['title'] = $columns['title'];
+		$new_columns['dgr_sort_order'] = __( 'Kolejność', 'wp-deweloper-gov-reporter' );
 		$new_columns['dgr_investment'] = __( 'Inwestycja', 'wp-deweloper-gov-reporter' );
 		$new_columns['dgr_unit_id'] = __( 'Nr Lokalu', 'wp-deweloper-gov-reporter' );
 		$new_columns['dgr_status'] = __( 'Status', 'wp-deweloper-gov-reporter' );
@@ -95,6 +96,11 @@ class DGR_Admin_Columns {
 
 	public function render_unit_columns( $column, $post_id ) {
 		switch ( $column ) {
+			case 'dgr_sort_order':
+				$order = get_post_meta( $post_id, '_dgr_unit_sort_order', true );
+				echo ( '' === $order || intval( $order ) <= 0 ) ? '—' : esc_html( intval( $order ) );
+				echo '<input type="hidden" class="dgr_sort_order_hidden_' . esc_attr( $post_id ) . '" value="' . esc_attr( $order ) . '">';
+				break;
 			case 'dgr_investment':
 				$parent_id = get_post_meta( $post_id, '_dgr_unit_parent_investment', true );
 				echo $parent_id ? esc_html( get_the_title( $parent_id ) ) : '-';
@@ -128,6 +134,7 @@ class DGR_Admin_Columns {
 		$columns['dgr_price_total'] = 'dgr_price_total';
 		$columns['dgr_area'] = 'dgr_area';
 		$columns['dgr_status'] = 'dgr_status';
+		$columns['dgr_sort_order'] = 'dgr_sort_order';
 		return $columns;
 	}
 
@@ -147,6 +154,9 @@ class DGR_Admin_Columns {
 		} elseif ( 'dgr_status' === $orderby ) {
 			$query->set( 'meta_key', '_dgr_unit_status' );
 			$query->set( 'orderby', 'meta_value' );
+		} elseif ( 'dgr_sort_order' === $orderby ) {
+			$query->set( 'meta_key', '_dgr_unit_sort_order' );
+			$query->set( 'orderby', 'meta_value_num' );
 		}
 	}
 
@@ -193,6 +203,12 @@ class DGR_Admin_Columns {
 					</span>
 				</label>
 				<label>
+					<span class="title"><?php esc_html_e( 'Kolejność', 'wp-deweloper-gov-reporter' ); ?></span>
+					<span class="input-text-wrap">
+						<input type="number" min="0" step="1" name="dgr_unit_sort_order" class="dgr_unit_sort_order" value="">
+					</span>
+				</label>
+				<label>
 					<span class="title"><?php esc_html_e( 'Status', 'wp-deweloper-gov-reporter' ); ?></span>
 					<span class="input-text-wrap">
 						<select name="dgr_unit_status" class="dgr_unit_status">
@@ -233,6 +249,7 @@ class DGR_Admin_Columns {
 				var editRow = $('#edit-' + id);
 				var priceTotal = $('.dgr_price_total_hidden_' + id).val();
 				var status = $('.dgr_status_hidden_' + id).val();
+				var sortOrder = $('.dgr_sort_order_hidden_' + id).val();
 
 				if (priceTotal) {
 					editRow.find('input[name="dgr_unit_price_total"]').val(priceTotal);
@@ -240,6 +257,7 @@ class DGR_Admin_Columns {
 				if (status) {
 					editRow.find('select[name="dgr_unit_status"]').val(status);
 				}
+				editRow.find('input[name="dgr_unit_sort_order"]').val(sortOrder || '');
 			};
 		});
 		</script>

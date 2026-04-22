@@ -80,6 +80,15 @@ class DGR_API_Connector {
 
 			foreach ( $query->posts as $unit ) {
 				$meta = get_post_meta( $unit->ID );
+
+				// Ustawa deweloperska (Dz.U. 2023 poz. 28) obejmuje wyłącznie
+				// lokale mieszkalne i domy jednorodzinne — lokale usługowe i inne
+				// są poza zakresem i nie trafiają do raportu.
+				$rodzaj_meta = isset( $meta['_dgr_unit_type'][0] ) ? $meta['_dgr_unit_type'][0] : 'lokal_mieszkalny';
+				if ( ! in_array( $rodzaj_meta, array( 'lokal_mieszkalny', 'dom_jednorodzinny' ), true ) ) {
+					continue;
+				}
+
 				$parent_id = isset( $meta['_dgr_unit_parent_investment'][0] ) ? intval( $meta['_dgr_unit_parent_investment'][0] ) : 0;
 
 				$investment = array(
@@ -87,6 +96,7 @@ class DGR_API_Connector {
 					'wojewodztwo'  => '', 'powiat' => '', 'gmina' => '',
 					'miejscowosc'  => '', 'ulica' => '', 'nr_nieruchomosci' => '',
 					'kod_pocztowy' => '',
+					'url_inwestycji' => '', 'url_prospektu' => '',
 				);
 				if ( $parent_id ) {
 					$inv_meta = get_post_meta( $parent_id );
@@ -100,6 +110,8 @@ class DGR_API_Connector {
 					$investment['ulica']            = isset( $inv_meta['_dgr_investment_street'][0] ) ? $inv_meta['_dgr_investment_street'][0] : '';
 					$investment['nr_nieruchomosci'] = isset( $inv_meta['_dgr_investment_building_number'][0] ) ? $inv_meta['_dgr_investment_building_number'][0] : '';
 					$investment['kod_pocztowy']     = isset( $inv_meta['_dgr_investment_postal_code'][0] ) ? $inv_meta['_dgr_investment_postal_code'][0] : '';
+					$investment['url_inwestycji']   = isset( $inv_meta['_dgr_investment_website_url'][0] ) ? $inv_meta['_dgr_investment_website_url'][0] : '';
+					$investment['url_prospektu']    = isset( $inv_meta['_dgr_investment_prospectus_url'][0] ) ? $inv_meta['_dgr_investment_prospectus_url'][0] : '';
 				}
 
 				// Accessories: new structured fields + legacy JSON dependencies
@@ -156,6 +168,11 @@ class DGR_API_Connector {
 				$price_m2_ini = isset( $meta['_dgr_unit_price_m2_initial'][0] ) ? floatval( $meta['_dgr_unit_price_m2_initial'][0] ) : 0;
 				if ( $price_m2_ini <= 0 ) $price_m2_ini = $price_m2_now;
 
+				// Omnibus: najniższa cena z ostatnich 30 dni (ustawa o jawności cen).
+				$lowest_30 = DGR_Price_History::get_lowest_prices_30_days( $unit->ID );
+				$lowest_total_30 = ( $lowest_30 && isset( $lowest_30['price_total'] ) ) ? floatval( $lowest_30['price_total'] ) : 0;
+				$lowest_m2_30    = ( $lowest_30 && isset( $lowest_30['price_m2'] ) ) ? floatval( $lowest_30['price_m2'] ) : 0;
+
 				$all_units[] = array(
 					'post_id'            => $unit->ID,
 					'investment'         => $investment,
@@ -168,6 +185,8 @@ class DGR_API_Connector {
 					'cena_calkowita'     => $price_total_now,
 					'cena_m2_ini'        => $price_m2_ini,
 					'cena_calkowita_ini' => $price_total_ini,
+					'cena_m2_30d'        => $lowest_m2_30,
+					'cena_calkowita_30d' => $lowest_total_30,
 					'cena_sprzedazy'     => isset( $meta['_dgr_unit_price_sale_brutto'][0] ) ? floatval( $meta['_dgr_unit_price_sale_brutto'][0] ) : 0,
 					'data_rozpoczecia'   => isset( $meta['_dgr_unit_sale_start_date'][0] ) ? sanitize_text_field( $meta['_dgr_unit_sale_start_date'][0] ) : '',
 					'data_sprzedazy'     => isset( $meta['_dgr_unit_sale_date'][0] ) ? sanitize_text_field( $meta['_dgr_unit_sale_date'][0] ) : '',
@@ -327,6 +346,13 @@ class DGR_API_Connector {
 			$this->append_text( $dom, $lok, 'kod_pocztowy', $inv['info']['kod_pocztowy'] );
 			$inwestycja->appendChild( $lok );
 
+			if ( ! empty( $inv['info']['url_inwestycji'] ) ) {
+				$this->append_text( $dom, $inwestycja, 'url_inwestycji', $inv['info']['url_inwestycji'] );
+			}
+			if ( ! empty( $inv['info']['url_prospektu'] ) ) {
+				$this->append_text( $dom, $inwestycja, 'url_prospektu', $inv['info']['url_prospektu'] );
+			}
+
 			$lokale = $dom->createElement( 'lokale' );
 
 			foreach ( $inv['units'] as $unit ) {
@@ -344,6 +370,9 @@ class DGR_API_Connector {
 				$this->append_text( $dom, $cm2, 'data_rozpoczecia_sprzedazy', $unit['data_rozpoczecia'] );
 				$this->append_text( $dom, $cm2, 'aktualna', number_format( $unit['cena_m2'], 2, '.', '' ) );
 				$this->append_text( $dom, $cm2, 'data_aktualizacji', $unit['data_aktualizacji'] );
+				if ( $unit['cena_m2_30d'] > 0 ) {
+					$this->append_text( $dom, $cm2, 'najnizsza_30_dni', number_format( $unit['cena_m2_30d'], 2, '.', '' ) );
+				}
 				$lokal->appendChild( $cm2 );
 
 				$cc = $dom->createElement( 'cena_calkowita' );
@@ -351,6 +380,9 @@ class DGR_API_Connector {
 				$this->append_text( $dom, $cc, 'data_rozpoczecia_sprzedazy', $unit['data_rozpoczecia'] );
 				$this->append_text( $dom, $cc, 'aktualna', number_format( $unit['cena_calkowita'], 2, '.', '' ) );
 				$this->append_text( $dom, $cc, 'data_aktualizacji', $unit['data_aktualizacji'] );
+				if ( $unit['cena_calkowita_30d'] > 0 ) {
+					$this->append_text( $dom, $cc, 'najnizsza_30_dni', number_format( $unit['cena_calkowita_30d'], 2, '.', '' ) );
+				}
 				$lokal->appendChild( $cc );
 
 				if ( $unit['cena_sprzedazy'] > 0 || ! empty( $unit['data_sprzedazy'] ) ) {

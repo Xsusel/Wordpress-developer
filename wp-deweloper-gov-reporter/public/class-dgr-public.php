@@ -276,14 +276,22 @@ class DGR_Public {
 
 		$args = array(
 			'post_type'      => 'dgr_unit',
-			'posts_per_page' => 20,
+			'posts_per_page' => -1,
 			'meta_query'     => $meta_query,
 		);
 
 		$query = new WP_Query( $args );
 
+		// Apply custom ordering (sort_order primary, fallback unit_id) once,
+		// in PHP, to keep WP_Query meta_query clean.
+		$posts = $query->posts;
+		if ( ! empty( $posts ) ) {
+			$posts = $this->sort_units( $posts, 'sort_order', 'ASC' );
+			$posts = array_slice( $posts, 0, 20 );
+		}
+
 		ob_start();
-		if ( $query->have_posts() ) : ?>
+		if ( ! empty( $posts ) ) : ?>
 			<table class="dgr-table">
 				<thead>
 					<tr>
@@ -296,8 +304,9 @@ class DGR_Public {
 					</tr>
 				</thead>
 				<tbody>
-					<?php while ( $query->have_posts() ) : $query->the_post();
-						$meta = get_post_meta( get_the_ID() );
+					<?php foreach ( $posts as $unit_post ) :
+						$pid = $unit_post->ID;
+						$meta = get_post_meta( $pid );
 						$unit_id = isset( $meta['_dgr_unit_id'][0] ) ? $meta['_dgr_unit_id'][0] : '-';
 						$area = isset( $meta['_dgr_unit_area'][0] ) ? $meta['_dgr_unit_area'][0] : '-';
 						$rooms = isset( $meta['_dgr_unit_rooms'][0] ) ? $meta['_dgr_unit_rooms'][0] : '-';
@@ -307,14 +316,14 @@ class DGR_Public {
 						$status_class = 'status-' . sanitize_html_class( $status );
 					?>
 						<tr>
-							<td><?php echo esc_html( $unit_id ); ?></td>
-							<td><?php echo esc_html( $inv_name ); ?></td>
-							<td style="text-align: center;"><?php echo esc_html( $rooms ); ?></td>
-							<td style="text-align: right;"><?php echo esc_html( $area ); ?> m²</td>
-							<td style="text-align: center;"><span class="dgr-status-badge <?php echo esc_attr( $status_class ); ?>"><?php echo esc_html( ucfirst( $status ) ); ?></span></td>
-							<td style="text-align: center;"><a href="<?php the_permalink(); ?>"><?php esc_html_e( 'Zobacz', 'wp-deweloper-gov-reporter' ); ?></a></td>
+							<td data-label="<?php esc_attr_e( 'Nr Lokalu', 'wp-deweloper-gov-reporter' ); ?>"><?php echo esc_html( $unit_id ); ?></td>
+							<td data-label="<?php esc_attr_e( 'Inwestycja', 'wp-deweloper-gov-reporter' ); ?>"><?php echo esc_html( $inv_name ); ?></td>
+							<td data-label="<?php esc_attr_e( 'Pokoje', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: center;"><?php echo esc_html( $rooms ); ?></td>
+							<td data-label="<?php esc_attr_e( 'Powierzchnia', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: right;"><?php echo esc_html( $area ); ?> m²</td>
+							<td data-label="<?php esc_attr_e( 'Status', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: center;"><span class="dgr-status-badge <?php echo esc_attr( $status_class ); ?>"><?php echo esc_html( ucfirst( $status ) ); ?></span></td>
+							<td data-label="<?php esc_attr_e( 'Szczegóły', 'wp-deweloper-gov-reporter' ); ?>" style="text-align: center;"><a href="<?php echo esc_url( get_permalink( $pid ) ); ?>"><?php esc_html_e( 'Zobacz', 'wp-deweloper-gov-reporter' ); ?></a></td>
 						</tr>
-					<?php endwhile; ?>
+					<?php endforeach; ?>
 				</tbody>
 			</table>
 		<?php else : ?>
@@ -632,6 +641,8 @@ class DGR_Public {
 		$parent_id       = intval( $get( '_dgr_unit_parent_investment' ) );
 		$investment_name = $parent_id ? get_the_title( $parent_id ) : '';
 		$investment_addr = '';
+		$investment_url  = '';
+		$prospectus_url  = '';
 		if ( $parent_id ) {
 			$inv = get_post_meta( $parent_id );
 			$street  = isset( $inv['_dgr_investment_street'][0] ) ? $inv['_dgr_investment_street'][0] : '';
@@ -639,7 +650,12 @@ class DGR_Public {
 			$city    = isset( $inv['_dgr_investment_city'][0] ) ? $inv['_dgr_investment_city'][0] : '';
 			$parts   = array_filter( array( trim( $street . ' ' . $bldg ), $city ) );
 			$investment_addr = implode( ', ', $parts );
+			$investment_url  = isset( $inv['_dgr_investment_website_url'][0] ) ? $inv['_dgr_investment_website_url'][0] : '';
+			$prospectus_url  = isset( $inv['_dgr_investment_prospectus_url'][0] ) ? $inv['_dgr_investment_prospectus_url'][0] : '';
 		}
+		$omnibus = DGR_Price_History::get_lowest_prices_30_days( $post_id );
+		$omnibus_total = ( $omnibus && isset( $omnibus['price_total'] ) ) ? floatval( $omnibus['price_total'] ) : 0;
+		$omnibus_m2    = ( $omnibus && isset( $omnibus['price_m2'] ) ) ? floatval( $omnibus['price_m2'] ) : 0;
 		$unit_id         = $get( '_dgr_unit_id' );
 		$unit_type       = $get( '_dgr_unit_type' );
 		$location        = $get( '_dgr_unit_location_label' );
@@ -703,7 +719,11 @@ class DGR_Public {
 					<li><span class="dgr-lokal-karta__spec-label"><?php esc_html_e( 'Adres', 'wp-deweloper-gov-reporter' ); ?></span><span class="dgr-lokal-karta__spec-value"><?php echo esc_html( $investment_addr ); ?></span></li>
 				<?php endif; ?>
 				<?php if ( $unit_type ) :
-					$type_labels = array( 'lokal_mieszkalny' => __( 'Lokal mieszkalny', 'wp-deweloper-gov-reporter' ), 'dom_jednorodzinny' => __( 'Dom jednorodzinny', 'wp-deweloper-gov-reporter' ) );
+					$type_labels = array(
+						'lokal_mieszkalny'  => __( 'Lokal mieszkalny', 'wp-deweloper-gov-reporter' ),
+						'dom_jednorodzinny' => __( 'Dom jednorodzinny', 'wp-deweloper-gov-reporter' ),
+						'lokal_uslugowy'    => __( 'Lokal usługowy', 'wp-deweloper-gov-reporter' ),
+					);
 				?>
 					<li><span class="dgr-lokal-karta__spec-label"><?php esc_html_e( 'Rodzaj', 'wp-deweloper-gov-reporter' ); ?></span><span class="dgr-lokal-karta__spec-value"><?php echo esc_html( isset( $type_labels[ $unit_type ] ) ? $type_labels[ $unit_type ] : $unit_type ); ?></span></li>
 				<?php endif; ?>
@@ -740,6 +760,9 @@ class DGR_Public {
 							<span class="dgr-lokal-karta__price-value"><?php echo esc_html( $this->format_price( $price_total ) ); ?></span>
 							<?php if ( $price_m2 > 0 ) : ?>
 								<span class="dgr-lokal-karta__price-m2"><?php echo esc_html( number_format( $price_m2, 2, ',', ' ' ) ); ?> zł/m&sup2;</span>
+							<?php endif; ?>
+							<?php if ( $omnibus_total > 0 && $omnibus_total < $price_total ) : ?>
+								<span class="dgr-lokal-karta__price-omnibus"><?php echo esc_html( sprintf( __( 'Najniższa cena z 30 dni: %s', 'wp-deweloper-gov-reporter' ), $this->format_price( $omnibus_total ) ) ); ?></span>
 							<?php endif; ?>
 						</div>
 					<?php endif; ?>
@@ -802,6 +825,21 @@ class DGR_Public {
 								<?php endif; ?>
 							</span>
 						</div>
+					<?php endif; ?>
+				</div>
+			<?php endif; ?>
+
+			<?php if ( '' !== $investment_url || '' !== $prospectus_url ) : ?>
+				<div class="dgr-lokal-karta__links">
+					<?php if ( '' !== $investment_url ) : ?>
+						<a class="dgr-lokal-karta__link" href="<?php echo esc_url( $investment_url ); ?>" target="_blank" rel="noopener">
+							<?php esc_html_e( 'Strona inwestycji', 'wp-deweloper-gov-reporter' ); ?>
+						</a>
+					<?php endif; ?>
+					<?php if ( '' !== $prospectus_url ) : ?>
+						<a class="dgr-lokal-karta__link dgr-lokal-karta__link--secondary" href="<?php echo esc_url( $prospectus_url ); ?>" target="_blank" rel="noopener">
+							<?php esc_html_e( 'Prospekt informacyjny (PDF)', 'wp-deweloper-gov-reporter' ); ?>
+						</a>
 					<?php endif; ?>
 				</div>
 			<?php endif; ?>
@@ -889,7 +927,7 @@ class DGR_Public {
 	 *
 	 * Attributes:
 	 *   id           – investment post ID (defaults to current post)
-	 *   orderby      – sort units by: unit_id | floor | area | rooms | price (default unit_id)
+	 *   orderby      – sort units by: sort_order | unit_id | floor | area | rooms | price (default sort_order)
 	 *   order        – ASC | DESC (default ASC)
 	 *   hide_sold    – yes | no (default no) – hide sold/transferred units
 	 *   show_details – yes | no (default yes) – show "Szczegóły" button column
@@ -899,7 +937,7 @@ class DGR_Public {
 
 		$atts = shortcode_atts( array(
 			'id'           => get_the_ID(),
-			'orderby'      => 'unit_id',
+			'orderby'      => 'sort_order',
 			'order'        => 'ASC',
 			'hide_sold'    => 'no',
 			'show_details' => 'yes',
@@ -911,22 +949,13 @@ class DGR_Public {
 			return '<p>' . esc_html__( 'Nie znaleziono inwestycji.', 'wp-deweloper-gov-reporter' ) . '</p>';
 		}
 
-		$orderby_map = array(
-			'unit_id' => array( 'meta_key' => '_dgr_unit_id',          'orderby' => 'meta_value' ),
-			'floor'   => array( 'meta_key' => '_dgr_unit_floor',       'orderby' => 'meta_value_num' ),
-			'area'    => array( 'meta_key' => '_dgr_unit_area',        'orderby' => 'meta_value_num' ),
-			'rooms'   => array( 'meta_key' => '_dgr_unit_rooms',       'orderby' => 'meta_value_num' ),
-			'price'   => array( 'meta_key' => '_dgr_unit_price_total', 'orderby' => 'meta_value_num' ),
-		);
-		$orderby_key = isset( $orderby_map[ $atts['orderby'] ] ) ? $atts['orderby'] : 'unit_id';
-		$order       = strtoupper( $atts['order'] ) === 'DESC' ? 'DESC' : 'ASC';
+		$allowed_orderby = array( 'sort_order', 'unit_id', 'floor', 'area', 'rooms', 'price' );
+		$orderby_key     = in_array( $atts['orderby'], $allowed_orderby, true ) ? $atts['orderby'] : 'sort_order';
+		$order_dir       = strtoupper( $atts['order'] ) === 'DESC' ? 'DESC' : 'ASC';
 
 		$args = array(
 			'post_type'      => 'dgr_unit',
 			'posts_per_page' => -1,
-			'meta_key'       => $orderby_map[ $orderby_key ]['meta_key'],
-			'orderby'        => $orderby_map[ $orderby_key ]['orderby'],
-			'order'          => $order,
 			'meta_query'     => array(
 				array(
 					'key'   => '_dgr_unit_parent_investment',
@@ -940,6 +969,8 @@ class DGR_Public {
 		if ( ! $query->have_posts() ) {
 			return '<p>' . esc_html__( 'Brak lokali w tej inwestycji.', 'wp-deweloper-gov-reporter' ) . '</p>';
 		}
+
+		$posts = $this->sort_units( $query->posts, $orderby_key, $order_dir );
 
 		$status_labels = array(
 			'available'             => __( 'dostępne', 'wp-deweloper-gov-reporter' ),
@@ -973,8 +1004,8 @@ class DGR_Public {
 					</tr>
 				</thead>
 				<tbody>
-					<?php while ( $query->have_posts() ) : $query->the_post();
-						$pid    = get_the_ID();
+					<?php foreach ( $posts as $unit_post ) :
+						$pid    = $unit_post->ID;
 						$meta   = get_post_meta( $pid );
 						$unit_id     = isset( $meta['_dgr_unit_id'][0] ) ? $meta['_dgr_unit_id'][0] : '';
 						$floor       = isset( $meta['_dgr_unit_floor'][0] ) ? $meta['_dgr_unit_floor'][0] : '';
@@ -996,7 +1027,7 @@ class DGR_Public {
 
 						$status_label = isset( $status_labels[ $status ] ) ? $status_labels[ $status ] : $status;
 						$status_class = $status ? 'status-' . sanitize_html_class( $status ) : '';
-						$display_name = '' !== $unit_id ? $unit_id : get_the_title();
+						$display_name = '' !== $unit_id ? $unit_id : get_the_title( $pid );
 					?>
 						<tr>
 							<td data-label="<?php esc_attr_e( 'Mieszkanie', 'wp-deweloper-gov-reporter' ); ?>"><?php echo esc_html( $display_name ); ?></td>
@@ -1024,11 +1055,66 @@ class DGR_Public {
 								</td>
 							<?php endif; ?>
 						</tr>
-					<?php endwhile; wp_reset_postdata(); ?>
+					<?php endforeach; wp_reset_postdata(); ?>
 				</tbody>
 			</table>
 		</div>
 		<?php
 		return ob_get_clean();
+	}
+
+	/**
+	 * Sort WP_Post[] of dgr_unit by the chosen criterion.
+	 *
+	 * Units with sort_order > 0 come first (ascending by value); units without
+	 * an explicit position fall back to unit_id ordering. ASC/DESC applies to
+	 * the primary criterion; the fallback always stays ASC for stable output.
+	 */
+	private function sort_units( $posts, $orderby, $direction ) {
+		$dir = ( 'DESC' === $direction ) ? -1 : 1;
+
+		$meta_key_map = array(
+			'unit_id' => '_dgr_unit_id',
+			'floor'   => '_dgr_unit_floor',
+			'area'    => '_dgr_unit_area',
+			'rooms'   => '_dgr_unit_rooms',
+			'price'   => '_dgr_unit_price_total',
+		);
+
+		usort( $posts, function( $a, $b ) use ( $orderby, $dir, $meta_key_map ) {
+			if ( 'sort_order' === $orderby ) {
+				$oa = intval( get_post_meta( $a->ID, '_dgr_unit_sort_order', true ) );
+				$ob = intval( get_post_meta( $b->ID, '_dgr_unit_sort_order', true ) );
+				$has_a = $oa > 0;
+				$has_b = $ob > 0;
+				if ( $has_a && $has_b ) {
+					if ( $oa !== $ob ) {
+						return ( $oa <=> $ob ) * $dir;
+					}
+				} elseif ( $has_a ) {
+					return -1;
+				} elseif ( $has_b ) {
+					return 1;
+				}
+				// Fallback to unit_id natural order
+				$ua = (string) get_post_meta( $a->ID, '_dgr_unit_id', true );
+				$ub = (string) get_post_meta( $b->ID, '_dgr_unit_id', true );
+				return strnatcasecmp( $ua, $ub );
+			}
+
+			if ( isset( $meta_key_map[ $orderby ] ) ) {
+				$key = $meta_key_map[ $orderby ];
+				$va  = get_post_meta( $a->ID, $key, true );
+				$vb  = get_post_meta( $b->ID, $key, true );
+				if ( 'unit_id' === $orderby ) {
+					return strnatcasecmp( (string) $va, (string) $vb ) * $dir;
+				}
+				return ( floatval( $va ) <=> floatval( $vb ) ) * $dir;
+			}
+
+			return 0;
+		} );
+
+		return $posts;
 	}
 }
